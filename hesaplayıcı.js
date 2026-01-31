@@ -88,6 +88,7 @@
     sku: "-",
     qty: 1,
 
+    // 1. Katman (İç Paspartu)
     matTypePriceM2: 0,
     matTypeLabel: "Paspartu Olmasın",
     matColorCode: "-",
@@ -96,6 +97,21 @@
     matBottom: 0,
     matLeft: 0,
     matRight: 0,
+
+    // 45 Derece Açı (Beyazlık)
+    mat45Degree: true, // varsayılan açık
+
+    // Çift Paspartu (2. Katman - Dış Paspartu)
+    isDoubleMat: false,
+    mat2TypePriceM2: 0,
+    mat2TypeLabel: "Paspartu Olmasın",
+    mat2ColorCode: "-",
+    mat2ColorHex: "#ffffff",
+    mat2Top: 0,
+    mat2Bottom: 0,
+    mat2Left: 0,
+    mat2Right: 0,
+    mat2Cost: 0,
 
     glassId: "none",
     glassLabel: "Cam Yok",
@@ -937,20 +953,67 @@
         <div style="height:12px"></div>
 
         <div class="olga-title">Paspartu Seçimi</div>
-        <select id="olga_mat_type" class="olga-select">${matOptions}</select>
 
-        <div id="olga_mat_controls" style="display:none; margin-top:10px">
-          <div class="olga-title" style="margin-top:8px">Paspartu Kenarları (mm)</div>
-          <div class="olga-row">
-            <div class="olga-col"><label>Üst</label><input type="number" id="olga_mat_top" value="50" min="0"></div>
-            <div class="olga-col"><label>Alt</label><input type="number" id="olga_mat_bottom" value="50" min="0"></div>
-            <div class="olga-col"><label>Sol</label><input type="number" id="olga_mat_left" value="50" min="0"></div>
-            <div class="olga-col"><label>Sağ</label><input type="number" id="olga_mat_right" value="50" min="0"></div>
+        <!-- Tek/Çift Paspartu Toggle -->
+        <div class="olga-mat-mode" style="display:flex; gap:8px; margin-bottom:10px;">
+          <div class="olga-chip selected" data-mat-mode="single" style="flex:1; text-align:center;">
+            <b>Tek Paspartu</b>
+            <small>Standart tek katman</small>
           </div>
+          <div class="olga-chip" data-mat-mode="double" style="flex:1; text-align:center;">
+            <b>Çift Paspartu</b>
+            <small>İç + Dış katman</small>
+          </div>
+        </div>
 
-          <div class="olga-title" style="margin-top:12px">Paspartu Rengi</div>
-          <div class="olga-palette-wrap">
-            <div class="olga-palette" id="olga_mat_palette"></div>
+        <!-- 1. Katman (İç Paspartu) -->
+        <div class="olga-mat-layer" id="olga_mat_layer1">
+          <div class="olga-title" style="font-size:13px;"><span id="olga_mat1_title">Paspartu Türü</span></div>
+          <select id="olga_mat_type" class="olga-select">${matOptions}</select>
+
+          <div id="olga_mat_controls" style="display:none; margin-top:10px">
+            <!-- 45 Derece Açı Seçeneği -->
+            <div class="olga-45degree-wrap" style="margin-bottom:12px; padding:10px; background:linear-gradient(135deg,#f8f6f4,#f0ebe6); border-radius:10px; border:1px solid #e7e1da;">
+              <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:13px; font-weight:600; color:#2b241b;">
+                <input type="checkbox" id="olga_mat_45degree" checked style="width:18px; height:18px; accent-color:rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b});">
+                <span>45° Açılı Kesim (Beyazlık)</span>
+                <span class="cc-info-icon" data-tooltip="45 derece açıyla kesildiğinde paspartunun iç kenarında beyaz şerit görünür. Premium görünüm sağlar." style="margin-left:auto;">i</span>
+              </label>
+            </div>
+
+            <div class="olga-title" style="margin-top:8px">Paspartu Kenarları (mm)</div>
+            <div class="olga-row">
+              <div class="olga-col"><label>Üst</label><input type="number" id="olga_mat_top" value="50" min="0"></div>
+              <div class="olga-col"><label>Alt</label><input type="number" id="olga_mat_bottom" value="50" min="0"></div>
+              <div class="olga-col"><label>Sol</label><input type="number" id="olga_mat_left" value="50" min="0"></div>
+              <div class="olga-col"><label>Sağ</label><input type="number" id="olga_mat_right" value="50" min="0"></div>
+            </div>
+
+            <div class="olga-title" style="margin-top:12px">Paspartu Rengi</div>
+            <div class="olga-palette-wrap">
+              <div class="olga-palette" id="olga_mat_palette"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Katman (Dış Paspartu) - Çift paspartu seçildiğinde görünür -->
+        <div class="olga-mat-layer" id="olga_mat_layer2" style="display:none; margin-top:14px; padding-top:14px; border-top:2px dashed #e7e1da;">
+          <div class="olga-title" style="font-size:13px;">Dış Paspartu (2. Katman)</div>
+          <select id="olga_mat2_type" class="olga-select">${matOptions}</select>
+
+          <div id="olga_mat2_controls" style="display:none; margin-top:10px">
+            <div class="olga-title" style="margin-top:8px">Dış Paspartu Kenarları (mm)</div>
+            <div class="olga-row">
+              <div class="olga-col"><label>Üst</label><input type="number" id="olga_mat2_top" value="30" min="0"></div>
+              <div class="olga-col"><label>Alt</label><input type="number" id="olga_mat2_bottom" value="30" min="0"></div>
+              <div class="olga-col"><label>Sol</label><input type="number" id="olga_mat2_left" value="30" min="0"></div>
+              <div class="olga-col"><label>Sağ</label><input type="number" id="olga_mat2_right" value="30" min="0"></div>
+            </div>
+
+            <div class="olga-title" style="margin-top:12px">Dış Paspartu Rengi</div>
+            <div class="olga-palette-wrap">
+              <div class="olga-palette" id="olga_mat2_palette"></div>
+            </div>
           </div>
         </div>
       `;
@@ -1016,8 +1079,10 @@
 
   /* ---------------- Palette ---------------- */
 
-  function renderMatPalette(matTypePriceM2) {
-    const palette = document.getElementById("olga_mat_palette");
+  // Generic palette render function - layer: 1 veya 2
+  function renderMatPaletteGeneric(matTypePriceM2, layer = 1) {
+    const paletteId = layer === 1 ? "olga_mat_palette" : "olga_mat2_palette";
+    const palette = document.getElementById(paletteId);
     if (!palette) return;
 
     palette.innerHTML = "";
@@ -1037,6 +1102,7 @@
       box.style.background = hex;
       box.dataset.code = code;
       box.dataset.hex = hex;
+      box.dataset.layer = layer;
       box.title = code;
 
       // Accessibility attributes
@@ -1058,7 +1124,7 @@
       const lbl = document.createElement("div");
       lbl.className = "olga-code";
       lbl.textContent = code;
-      lbl.id = `olga-color-label-${index}`;
+      lbl.id = `olga-color-label-${layer}-${index}`;
       box.setAttribute("aria-labelledby", lbl.id);
 
       item.appendChild(box);
@@ -1074,9 +1140,25 @@
       });
       first.classList.add("selected");
       first.setAttribute("aria-selected", "true");
-      STATE.matColorCode = first.dataset.code || "-";
-      STATE.matColorHex = first.dataset.hex || "#ffffff";
+
+      if (layer === 1) {
+        STATE.matColorCode = first.dataset.code || "-";
+        STATE.matColorHex = first.dataset.hex || "#ffffff";
+      } else {
+        STATE.mat2ColorCode = first.dataset.code || "-";
+        STATE.mat2ColorHex = first.dataset.hex || "#ffffff";
+      }
     }
+  }
+
+  // Backward compatible wrapper
+  function renderMatPalette(matTypePriceM2) {
+    renderMatPaletteGeneric(matTypePriceM2, 1);
+  }
+
+  // 2. katman için palette render
+  function renderMat2Palette(matTypePriceM2) {
+    renderMatPaletteGeneric(matTypePriceM2, 2);
   }
 
   // Debounced calculate for performance
@@ -1087,6 +1169,124 @@
     const matTypeEl = document.getElementById("olga_mat_type");
     const matControls = document.getElementById("olga_mat_controls");
     const paletteWrap = document.getElementById("olga_mat_palette");
+
+    // ========== TEK/ÇİFT PASPARTU TOGGLE ==========
+    const matModeWrap = document.querySelector(".olga-mat-mode");
+    if (matModeWrap && !matModeWrap.__bound) {
+      matModeWrap.__bound = true;
+
+      matModeWrap.addEventListener("click", (e) => {
+        const chip = e.target.closest(".olga-chip");
+        if (!chip) return;
+
+        createRipple(e, chip);
+
+        matModeWrap.querySelectorAll(".olga-chip").forEach(x => x.classList.remove("selected"));
+        chip.classList.add("selected");
+
+        const mode = chip.dataset.matMode;
+        STATE.isDoubleMat = (mode === "double");
+
+        const layer2 = document.getElementById("olga_mat_layer2");
+        const mat1Title = document.getElementById("olga_mat1_title");
+
+        if (STATE.isDoubleMat) {
+          if (layer2) layer2.style.display = "block";
+          if (mat1Title) mat1Title.textContent = "İç Paspartu (1. Katman)";
+          announceToSR("Çift paspartu seçildi");
+        } else {
+          if (layer2) layer2.style.display = "none";
+          if (mat1Title) mat1Title.textContent = "Paspartu Türü";
+          announceToSR("Tek paspartu seçildi");
+        }
+
+        calculate();
+      });
+    }
+
+    // ========== 45 DERECE AÇI CHECKBOX ==========
+    const degree45El = document.getElementById("olga_mat_45degree");
+    if (degree45El && !degree45El.__bound) {
+      degree45El.__bound = true;
+      degree45El.addEventListener("change", () => {
+        STATE.mat45Degree = degree45El.checked;
+        announceToSR(degree45El.checked ? "45 derece açı aktif" : "45 derece açı kapalı");
+        calculate();
+      });
+    }
+
+    // ========== 2. KATMAN (DIŞ PASPARTU) ==========
+    const mat2TypeEl = document.getElementById("olga_mat2_type");
+    const mat2Controls = document.getElementById("olga_mat2_controls");
+    const palette2Wrap = document.getElementById("olga_mat2_palette");
+
+    if (mat2TypeEl && !mat2TypeEl.__bound) {
+      mat2TypeEl.__bound = true;
+      mat2TypeEl.setAttribute("aria-label", "Dış paspartu türü seçin");
+
+      mat2TypeEl.addEventListener("change", () => {
+        const v = safeParseFloat(mat2TypeEl.value, 0);
+        STATE.mat2TypePriceM2 = v;
+        STATE.mat2TypeLabel = MAT_TYPES.find(x => x.value === v)?.label || "Paspartu";
+
+        if (mat2Controls) {
+          mat2Controls.style.display = v > 0 ? "block" : "none";
+        }
+
+        const def = v > 0 ? 30 : 0;
+        ["olga_mat2_top","olga_mat2_bottom","olga_mat2_left","olga_mat2_right"].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = def;
+        });
+
+        if (v > 0) renderMat2Palette(v);
+        announceToSR(`Dış paspartu: ${STATE.mat2TypeLabel} seçildi`);
+        calculate();
+      });
+    }
+
+    // 2. katman kenar input'ları
+    ["olga_mat2_top","olga_mat2_bottom","olga_mat2_left","olga_mat2_right"].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el || el.__bound) return;
+      el.__bound = true;
+      el.setAttribute("aria-label", id.replace("olga_mat2_", "Dış paspartu ") + " kenarı (mm)");
+      el.addEventListener("input", debouncedCalculate);
+      el.addEventListener("change", calculate);
+    });
+
+    // 2. katman palette event
+    if (palette2Wrap && !palette2Wrap.__bound) {
+      palette2Wrap.__bound = true;
+      palette2Wrap.setAttribute("role", "listbox");
+      palette2Wrap.setAttribute("aria-label", "Dış paspartu renkleri");
+
+      palette2Wrap.addEventListener("click", (e) => {
+        const c = e.target.closest(".olga-color");
+        if (!c) return;
+
+        palette2Wrap.querySelectorAll(".olga-color").forEach(x => {
+          x.classList.remove("selected");
+          x.setAttribute("aria-selected", "false");
+        });
+        c.classList.add("selected");
+        c.setAttribute("aria-selected", "true");
+
+        STATE.mat2ColorCode = c.dataset.code || "-";
+        STATE.mat2ColorHex = c.dataset.hex || "#ffffff";
+
+        announceToSR(`Dış paspartu rengi: ${STATE.mat2ColorCode} seçildi`);
+        calculate();
+      });
+
+      palette2Wrap.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          const color = e.target.closest(".olga-color");
+          if (color) color.click();
+        }
+      });
+    }
 
     if (glassGrid && !glassGrid.__bound) {
       glassGrid.__bound = true;
@@ -1299,6 +1499,29 @@
      ✅ PREVIEW
   ========================================================= */
 
+  // 2. katman için arka plan
+  function getMat2PreviewBackground() {
+    const type = STATE.mat2TypePriceM2 || 0;
+    const code = (STATE.mat2ColorCode || "").toUpperCase();
+    const hex = STATE.mat2ColorHex || "#ffffff";
+
+    if (type === 1700) {
+      if (code === "W232") return "linear-gradient(135deg,#fff8d9 0%,#f4d98a 18%,#d4af37 42%,#fff2bf 55%,#b8860b 78%,#fff6cf 100%)";
+      if (code === "W233") return "linear-gradient(135deg,#ffffff 0%,#e6e6e6 18%,#bfbfbf 42%,#f8f8f8 55%,#9b9b9b 78%,#ffffff 100%)";
+      return hex;
+    }
+
+    if (type === 3000) {
+      return `radial-gradient(circle at 20% 15%, rgba(255,255,255,.10), rgba(255,255,255,0) 35%),
+              radial-gradient(circle at 80% 85%, rgba(0,0,0,.10), rgba(0,0,0,0) 40%),
+              repeating-linear-gradient(45deg, rgba(255,255,255,.06) 0 2px, rgba(0,0,0,.05) 2px 4px),
+              ${hex}`;
+    }
+
+    if (type === 1250) return hex;
+    return "#ffffff";
+  }
+
   function updateLivePreview() {
     const frame = document.getElementById("olga_frame");
     const frameInner = document.getElementById("olga_frame_inner");
@@ -1320,11 +1543,35 @@
     const boxW = box.clientWidth;
     const boxH = box.clientHeight;
 
+    // ========== 2. KATMAN (DIŞ MAT) ELEMENTİ ==========
+    let mat2 = document.getElementById("olga_mat2");
+    if (!mat2 && STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
+      mat2 = document.createElement("div");
+      mat2.id = "olga_mat2";
+      mat2.className = "olga-mat2";
+      mat2.style.cssText = `
+        display:flex; align-items:center; justify-content:center;
+        box-sizing:border-box; position:relative; transition: all 0.3s ease;
+      `;
+      // mat2'yi mat'ın parent'ına, mat'ın yerine ekle
+      mat.parentNode.insertBefore(mat2, mat);
+      mat2.appendChild(mat);
+    }
+    if (mat2 && (!STATE.isDoubleMat || STATE.mat2TypePriceM2 <= 0)) {
+      // Çift paspartu kapalıysa mat2'yi kaldır
+      if (mat2.parentNode) {
+        mat2.parentNode.insertBefore(mat, mat2);
+        mat2.remove();
+      }
+      mat2 = null;
+    }
+
     if (!(STATE.artWMM > 0 && STATE.artHMM > 0) || boxW < 50 || boxH < 50) {
       frame.style.width = "160px";
       frame.style.height = "160px";
       frame.style.padding = "10px";
 
+      if (mat2) mat2.style.padding = "10px";
       mat.style.padding = "18px";
       mat.style.background = "#ffffff";
 
@@ -1361,6 +1608,19 @@
     frame.style.width = `${frameWpx}px`;
     frame.style.height = `${frameHpx}px`;
 
+    // ========== 2. KATMAN PADDING (DIŞ) ==========
+    if (mat2 && STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
+      const p2Top = Math.max(0, (STATE.mat2Top || 0) * scale);
+      const p2Bottom = Math.max(0, (STATE.mat2Bottom || 0) * scale);
+      const p2Left = Math.max(0, (STATE.mat2Left || 0) * scale);
+      const p2Right = Math.max(0, (STATE.mat2Right || 0) * scale);
+
+      mat2.style.padding = `${p2Top}px ${p2Right}px ${p2Bottom}px ${p2Left}px`;
+      mat2.style.background = getMat2PreviewBackground();
+      mat2.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.08)";
+    }
+
+    // ========== 1. KATMAN PADDING (İÇ) ==========
     const pTop = Math.max(0, (STATE.matTop || 0) * scale);
     const pBottom = Math.max(0, (STATE.matBottom || 0) * scale);
     const pLeft = Math.max(0, (STATE.matLeft || 0) * scale);
@@ -1378,7 +1638,12 @@
 
     if (STATE.matTypePriceM2 > 0) {
       mat.style.background = getMatPreviewBackground();
-      mat.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.10)";
+      // 45 derece açı efekti - iç kenarda beyaz şerit
+      if (STATE.mat45Degree) {
+        mat.style.boxShadow = "inset 0 0 0 2px #ffffff, inset 0 0 0 3px rgba(0,0,0,.15)";
+      } else {
+        mat.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.10)";
+      }
     } else {
       mat.style.background = "#ffffff";
       mat.style.boxShadow = "none";
@@ -1397,9 +1662,18 @@
 
     if (label) label.textContent = `${STATE.totalWMM}×${STATE.totalHMM} mm`;
     if (note) {
-      const matTxt = STATE.matTypePriceM2 > 0
-        ? `Paspartu: ${STATE.matTypeLabel} (${STATE.matColorCode})`
-        : "Paspartu: Yok";
+      let matTxt = "";
+      if (STATE.matTypePriceM2 > 0) {
+        matTxt = `İç: ${STATE.matTypeLabel} (${STATE.matColorCode})`;
+        if (STATE.mat45Degree) matTxt += " • 45°";
+      } else {
+        matTxt = "Paspartu: Yok";
+      }
+
+      if (STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
+        matTxt += ` | Dış: ${STATE.mat2TypeLabel} (${STATE.mat2ColorCode})`;
+      }
+
       const glassTxt = `Cam: ${STATE.glassLabel || "Cam Yok"}`;
       note.textContent = `${matTxt} • ${glassTxt}`;
     }
@@ -1447,6 +1721,7 @@
     const cutWMM = artWMM + tolMM;
     const cutHMM = artHMM + tolMM;
 
+    // ========== 1. KATMAN (İÇ PASPARTU) ==========
     const matTypeEl = document.getElementById("olga_mat_type");
     const matTypePriceM2 = matTypeEl ? (parseFloat(matTypeEl.value || "0") || 0) : 0;
     const matTypeLabel = MAT_TYPES.find(x => x.value === matTypePriceM2)?.label || "Paspartu";
@@ -1458,10 +1733,34 @@
     const matLeft = hasMat ? (parseFloat(document.getElementById("olga_mat_left")?.value || "0") || 0) : 0;
     const matRight = hasMat ? (parseFloat(document.getElementById("olga_mat_right")?.value || "0") || 0) : 0;
 
-    const totalWMM = artWMM + matLeft + matRight;
-    const totalHMM = artHMM + matTop + matBottom;
+    // 45 derece açı state
+    const degree45El = document.getElementById("olga_mat_45degree");
+    STATE.mat45Degree = degree45El ? degree45El.checked : true;
+
+    // ========== 2. KATMAN (DIŞ PASPARTU) ==========
+    const mat2TypeEl = document.getElementById("olga_mat2_type");
+    const mat2TypePriceM2 = (STATE.isDoubleMat && mat2TypeEl) ? (parseFloat(mat2TypeEl.value || "0") || 0) : 0;
+    const mat2TypeLabel = MAT_TYPES.find(x => x.value === mat2TypePriceM2)?.label || "Paspartu";
+
+    const hasMat2 = STATE.isDoubleMat && mat2TypePriceM2 > 0;
+
+    const mat2Top = hasMat2 ? (parseFloat(document.getElementById("olga_mat2_top")?.value || "0") || 0) : 0;
+    const mat2Bottom = hasMat2 ? (parseFloat(document.getElementById("olga_mat2_bottom")?.value || "0") || 0) : 0;
+    const mat2Left = hasMat2 ? (parseFloat(document.getElementById("olga_mat2_left")?.value || "0") || 0) : 0;
+    const mat2Right = hasMat2 ? (parseFloat(document.getElementById("olga_mat2_right")?.value || "0") || 0) : 0;
+
+    // Toplam ölçü: Sanat eseri + İç paspartu + Dış paspartu
+    const totalWMM = artWMM + matLeft + matRight + mat2Left + mat2Right;
+    const totalHMM = artHMM + matTop + matBottom + mat2Top + mat2Bottom;
+
+    // İç paspartu dahil ölçü (2. katman öncesi)
+    const innerMatWMM = artWMM + matLeft + matRight;
+    const innerMatHMM = artHMM + matTop + matBottom;
 
     const areaM2 = (totalWMM / 1000) * (totalHMM / 1000);
+
+    // İç paspartu alanı (1. katman)
+    const innerAreaM2 = (innerMatWMM / 1000) * (innerMatHMM / 1000);
 
     const perimeterM = (2 * (totalWMM + totalHMM)) / 1000;
     const totalMeter = perimeterM + FIRE_M;
@@ -1469,16 +1768,32 @@
     const unitPrice = getUnitMeterPrice_Ignore290();
 
     const frameCostOne = (unitPrice > 0 && areaM2 > 0) ? (totalMeter * unitPrice) : 0;
-    const matCostOne = hasMat ? (areaM2 * matTypePriceM2) : 0;
+
+    // 1. katman maliyeti (iç paspartu alanı üzerinden)
+    const matCostOne = hasMat ? (innerAreaM2 * matTypePriceM2) : 0;
+
+    // 2. katman maliyeti (toplam alan - iç alan = dış paspartu alanı)
+    const mat2AreaM2 = areaM2 - innerAreaM2;
+    const mat2CostOne = hasMat2 ? (mat2AreaM2 * mat2TypePriceM2) : 0;
+
     const glassCostOne = areaM2 * (STATE.glassPriceM2 || 0);
 
-    const totalOne = frameCostOne + matCostOne + glassCostOne;
+    const totalOne = frameCostOne + matCostOne + mat2CostOne + glassCostOne;
     const total = totalOne * qty;
+
+    // 2. katman state güncelle
+    STATE.mat2TypePriceM2 = mat2TypePriceM2;
+    STATE.mat2TypeLabel = mat2TypeLabel;
+    STATE.mat2Top = mat2Top;
+    STATE.mat2Bottom = mat2Bottom;
+    STATE.mat2Left = mat2Left;
+    STATE.mat2Right = mat2Right;
+    STATE.mat2Cost = mat2CostOne * qty;
 
     STATE.unitPrice = unitPrice;
     STATE.totalPrice = total;
     STATE.frameCost = frameCostOne * qty;
-    STATE.matCost = matCostOne * qty;
+    STATE.matCost = (matCostOne + mat2CostOne) * qty; // Toplam paspartu maliyeti
     STATE.glassCost = glassCostOne * qty;
 
     STATE.artWMM = artWMM;
@@ -1488,6 +1803,10 @@
 
     STATE.totalWMM = totalWMM;
     STATE.totalHMM = totalHMM;
+
+    // İç paspartu dahil ölçü (önizleme için)
+    STATE.innerMatWMM = innerMatWMM;
+    STATE.innerMatHMM = innerMatHMM;
 
     STATE.tolAdded = tolAdded;
     STATE.sku = getProductSku();
@@ -1539,6 +1858,21 @@
   function sendWhatsAppOrder() {
     calculate();
 
+    // Paspartu bilgisi oluştur
+    let paspartuInfo = "";
+    if (STATE.matTypePriceM2 > 0) {
+      paspartuInfo = `İç Paspartu: ${STATE.matTypeLabel} (${STATE.matColorCode || "-"})`;
+      if (STATE.mat45Degree) paspartuInfo += " - 45° Açılı";
+    } else {
+      paspartuInfo = "Paspartu: Yok";
+    }
+
+    // Çift paspartu varsa ekle
+    let mat2Info = "";
+    if (STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
+      mat2Info = `\nDış Paspartu: ${STATE.mat2TypeLabel} (${STATE.mat2ColorCode || "-"})`;
+    }
+
     const lines = [
       "Merhaba Olga Çerçeve 👋",
       "Web siteniz üzerinden çerçeve hesabı yaptım:",
@@ -1550,7 +1884,7 @@
       `Kesim: ${STATE.cutWMM || "-"} × ${STATE.cutHMM || "-"} mm`,
       `Çerçeve ölçüsü (paspartu dahil): ${STATE.totalWMM || "-"} × ${STATE.totalHMM || "-"} mm`,
       "",
-      `Paspartu: ${STATE.matTypePriceM2 > 0 ? `${STATE.matTypeLabel} (${STATE.matColorCode || "-"})` : "Yok"}`,
+      paspartuInfo + mat2Info,
       `Cam: ${STATE.glassLabel || "Cam Yok"}`,
       "",
       `Çerçeve: ${formatTR_TL(STATE.frameCost)}`,
@@ -1664,10 +1998,21 @@
     pdf.text(fixText(`Cerceve Adedi     : ${STATE.qty}`), 15, y); y += 9;
     pdf.text(fixText(`2 mm Pay          : ${STATE.tolAdded ? "Eklendi" : "Eklenmedi"}`), 15, y); y += 10;
 
-    pdf.text(fixText(`Paspartu          : ${STATE.matTypePriceM2 > 0 ? STATE.matTypeLabel : "Yok"}`), 15, y); y += 9;
+    // İç Paspartu
+    const paspartuLabel = STATE.isDoubleMat ? "Ic Paspartu" : "Paspartu";
+    pdf.text(fixText(`${paspartuLabel}          : ${STATE.matTypePriceM2 > 0 ? STATE.matTypeLabel : "Yok"}`), 15, y); y += 9;
     if (STATE.matTypePriceM2 > 0) {
-      pdf.text(fixText(`Paspartu Kodu     : ${STATE.matColorCode || "-"}`), 15, y); y += 9;
+      let kodLine = `${paspartuLabel} Kodu     : ${STATE.matColorCode || "-"}`;
+      if (STATE.mat45Degree) kodLine += " (45 derece acili)";
+      pdf.text(fixText(kodLine), 15, y); y += 9;
       pdf.text(fixText(`Kenarlar (mm)     : Sol ${STATE.matLeft}, Sag ${STATE.matRight}, Ust ${STATE.matTop}, Alt ${STATE.matBottom}`), 15, y); y += 10;
+    }
+
+    // Dış Paspartu (Çift paspartu varsa)
+    if (STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
+      pdf.text(fixText(`Dis Paspartu      : ${STATE.mat2TypeLabel}`), 15, y); y += 9;
+      pdf.text(fixText(`Dis Paspartu Kodu : ${STATE.mat2ColorCode || "-"}`), 15, y); y += 9;
+      pdf.text(fixText(`Dis Kenarlar (mm) : Sol ${STATE.mat2Left}, Sag ${STATE.mat2Right}, Ust ${STATE.mat2Top}, Alt ${STATE.mat2Bottom}`), 15, y); y += 10;
     }
 
     pdf.text(fixText(`Cam               : ${STATE.glassLabel || "Cam Yok"}`), 15, y); y += 12;
