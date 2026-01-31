@@ -1614,17 +1614,27 @@
     const cLeft = Math.min(pLeft, maxPadX);
     const cRight = Math.min(pRight, maxPadX);
 
-    // ÇİFT PASPARTU: mat2 = DIŞ (kalın kenarlar), mat = ALT (ince şerit)
+    // ÇİFT PASPARTU: mat2 = DIŞ (üstte), mat = İÇ (altta, ince şerit görünür)
+    // Fiziksel yapı: Alt karton (iç) tam kenarlarla yerleşir, üst karton (dış) onun üzerine biner
+    // Görünür: Üst katman = kenarlar - montaj genişliği, Alt katman = montaj genişliği
     if (mat2 && STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
-      // mat2 (dış, üstte görünen) = KALIN kenarlar
-      mat2.style.padding = `${cTop}px ${cRight}px ${cBottom}px ${cLeft}px`;
-      mat2.style.background = getMatPreviewBackground(); // Ana paspartu rengi
+      const mountingPx = Math.max(2, (STATE.mountingWidth || 5) * scale);
+
+      // mat2 (dış, üstte) = TOPLAM kenarlar - montaj genişliği
+      // Montaj genişliği arttıkça üst katmanın görünür alanı AZALIR
+      const mat2Top = Math.max(0, cTop - mountingPx);
+      const mat2Right = Math.max(0, cRight - mountingPx);
+      const mat2Bottom = Math.max(0, cBottom - mountingPx);
+      const mat2Left = Math.max(0, cLeft - mountingPx);
+
+      mat2.style.padding = `${mat2Top}px ${mat2Right}px ${mat2Bottom}px ${mat2Left}px`;
+      mat2.style.background = getMatPreviewBackground(); // Dış paspartu rengi
       mat2.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.08)";
 
-      // mat (alt, ince şerit) = mounting width
-      const mountingPx = Math.max(2, (STATE.mountingWidth || 5) * scale);
+      // mat (iç, altta) = montaj genişliği kadar görünür
+      // Montaj genişliği arttıkça alt katman daha çok görünür
       mat.style.padding = `${mountingPx}px`;
-      mat.style.background = getMat2PreviewBackground(); // Alt paspartu rengi
+      mat.style.background = getMat2PreviewBackground(); // İç paspartu rengi
       mat.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.08)";
     } else {
       // TEK PASPARTU: sadece mat kullanılır
