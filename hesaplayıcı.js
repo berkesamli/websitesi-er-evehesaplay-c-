@@ -1615,32 +1615,48 @@
     frame.style.width = `${contentW + frameBorderPx * 2}px`;
     frame.style.height = `${contentH + frameBorderPx * 2}px`;
 
-    // Paspartu kenar ölçüleri (px)
-    const cTop = Math.min(Math.max(0, (STATE.matTop || 0) * scale), (contentH - 20) / 2);
-    const cBottom = Math.min(Math.max(0, (STATE.matBottom || 0) * scale), (contentH - 20) / 2);
-    const cLeft = Math.min(Math.max(0, (STATE.matLeft || 0) * scale), (contentW - 20) / 2);
-    const cRight = Math.min(Math.max(0, (STATE.matRight || 0) * scale), (contentW - 20) / 2);
+    // Paspartu kenar ölçüleri (px) - minimum 8px görünür olsun
+    const minMatPx = 8; // Minimum paspartu kalınlığı (px)
+    const rawTop = (STATE.matTop || 0) * scale;
+    const rawBottom = (STATE.matBottom || 0) * scale;
+    const rawLeft = (STATE.matLeft || 0) * scale;
+    const rawRight = (STATE.matRight || 0) * scale;
 
-    // Eser boyutları
-    const artWpx = Math.max(22, STATE.artWMM * scale);
-    const artHpx = Math.max(22, STATE.artHMM * scale);
+    // Paspartu varsa minimum kalınlık uygula
+    const hasMatEdges = STATE.matTypePriceM2 > 0 && (STATE.matTop > 0 || STATE.matBottom > 0 || STATE.matLeft > 0 || STATE.matRight > 0);
+    const cTop = hasMatEdges && STATE.matTop > 0 ? Math.max(minMatPx, Math.min(rawTop, (contentH - 20) / 2)) : 0;
+    const cBottom = hasMatEdges && STATE.matBottom > 0 ? Math.max(minMatPx, Math.min(rawBottom, (contentH - 20) / 2)) : 0;
+    const cLeft = hasMatEdges && STATE.matLeft > 0 ? Math.max(minMatPx, Math.min(rawLeft, (contentW - 20) / 2)) : 0;
+    const cRight = hasMatEdges && STATE.matRight > 0 ? Math.max(minMatPx, Math.min(rawRight, (contentW - 20) / 2)) : 0;
+
+    // Eser boyutları - paspartu için yer bırak
+    const artWpx = Math.max(20, contentW - cLeft - cRight - 10);
+    const artHpx = Math.max(20, contentH - cTop - cBottom - 10);
 
     // ========== ÇİFT PASPARTU ==========
     if (isDouble) {
-      const mountingPx = Math.max(4, (STATE.mountingWidth || 5) * scale);
+      // İç paspartu minimum 5px görünür olsun
+      const minMountPx = 5;
+      const mountingPx = Math.max(minMountPx, (STATE.mountingWidth || 5) * scale);
 
       // DIŞ PASPARTU - kalın renkli alan
-      // Görünür kalınlık = kenarlar - montaj - bevel
-      matOuter.style.padding = `${Math.max(0, cTop - mountingPx - bevelPx)}px ${Math.max(0, cRight - mountingPx - bevelPx)}px ${Math.max(0, cBottom - mountingPx - bevelPx)}px ${Math.max(0, cLeft - mountingPx - bevelPx)}px`;
+      // Görünür kalınlık = kenarlar - montaj - bevel (minimum 6px)
+      const minOuterPx = 6;
+      const outerTop = Math.max(minOuterPx, cTop - mountingPx - bevelPx);
+      const outerRight = Math.max(minOuterPx, cRight - mountingPx - bevelPx);
+      const outerBottom = Math.max(minOuterPx, cBottom - mountingPx - bevelPx);
+      const outerLeft = Math.max(minOuterPx, cLeft - mountingPx - bevelPx);
+
+      matOuter.style.padding = `${outerTop}px ${outerRight}px ${outerBottom}px ${outerLeft}px`;
       matOuter.style.background = getMatPreviewBackground();
 
       // BEVEL OUTER - 45° beyaz kesim (dış paspartunun iç kenarı)
       bevelOuter.style.padding = `${bevelPx}px`;
       bevelOuter.style.background = "#ffffff";
 
-      // İÇ PASPARTU - ince şerit (montaj genişliği - bevel)
+      // İÇ PASPARTU - ince şerit (montaj genişliği - bevel, minimum 3px)
       if (matInner) {
-        matInner.style.padding = `${Math.max(0, mountingPx - bevelPx)}px`;
+        matInner.style.padding = `${Math.max(3, mountingPx - bevelPx)}px`;
         matInner.style.background = getMat2PreviewBackground();
       }
 
