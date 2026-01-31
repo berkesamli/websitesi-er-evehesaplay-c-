@@ -1556,9 +1556,6 @@
     // Aktif eser alanı
     const activeArt = isDouble ? art : artSingle;
 
-    // 45° kesim kalınlığı (px)
-    const bevelPx = 3;
-
     if (!(STATE.artWMM > 0 && STATE.artHMM > 0) || boxW < 50 || boxH < 50) {
       frame.style.width = "160px";
       frame.style.height = "160px";
@@ -1569,6 +1566,7 @@
       matOuter.style.padding = "18px";
       matOuter.style.background = "#ffffff";
       matOuter.style.border = "none";
+      matOuter.style.boxShadow = "none";
 
       if (activeArt) {
         activeArt.style.width = "70px";
@@ -1602,51 +1600,40 @@
     frame.style.width = `${contentW + borderPx * 2}px`;
     frame.style.height = `${contentH + borderPx * 2}px`;
 
-    // ========== PASPARTU PADDINGLERİ ==========
-    const pTop = Math.max(0, (STATE.matTop || 0) * scale);
-    const pBottom = Math.max(0, (STATE.matBottom || 0) * scale);
-    const pLeft = Math.max(0, (STATE.matLeft || 0) * scale);
-    const pRight = Math.max(0, (STATE.matRight || 0) * scale);
-
-    const maxPadX = Math.max(0, (contentW - 20) / 2);
-    const maxPadY = Math.max(0, (contentH - 20) / 2);
-
-    const cTop = Math.min(pTop, maxPadY);
-    const cBottom = Math.min(pBottom, maxPadY);
-    const cLeft = Math.min(pLeft, maxPadX);
-    const cRight = Math.min(pRight, maxPadX);
+    // ========== PASPARTU KENARLARI ==========
+    const cTop = Math.min(Math.max(0, (STATE.matTop || 0) * scale), (contentH - 20) / 2);
+    const cBottom = Math.min(Math.max(0, (STATE.matBottom || 0) * scale), (contentH - 20) / 2);
+    const cLeft = Math.min(Math.max(0, (STATE.matLeft || 0) * scale), (contentW - 20) / 2);
+    const cRight = Math.min(Math.max(0, (STATE.matRight || 0) * scale), (contentW - 20) / 2);
 
     // Eser boyutları
     const artWpx = Math.max(22, STATE.artWMM * scale);
     const artHpx = Math.max(22, STATE.artHMM * scale);
 
+    // 45° kesim beyaz çizgi (inset box-shadow ile)
+    const bevelShadow = "inset 0 0 0 2px #ffffff, inset 0 0 0 3px rgba(0,0,0,0.15)";
+
     // ========== ÇİFT PASPARTU ==========
     if (isDouble) {
-      const mountingPx = Math.max(2, (STATE.mountingWidth || 5) * scale);
+      const mountingPx = Math.max(3, (STATE.mountingWidth || 5) * scale);
 
-      // DIŞ PASPARTU - üstte görünen kalın alan
-      // Görünür alan = toplam kenarlar - montaj genişliği
-      const outerPadTop = Math.max(0, cTop - mountingPx - bevelPx);
-      const outerPadRight = Math.max(0, cRight - mountingPx - bevelPx);
-      const outerPadBottom = Math.max(0, cBottom - mountingPx - bevelPx);
-      const outerPadLeft = Math.max(0, cLeft - mountingPx - bevelPx);
-
+      // DIŞ PASPARTU (KIRMIZI alan resimdeki gibi)
+      // Görünür kalınlık = toplam kenar - montaj genişliği
       matOuter.style.width = "100%";
       matOuter.style.height = "100%";
-      matOuter.style.padding = `${outerPadTop}px ${outerPadRight}px ${outerPadBottom}px ${outerPadLeft}px`;
+      matOuter.style.padding = `${Math.max(0, cTop - mountingPx)}px ${Math.max(0, cRight - mountingPx)}px ${Math.max(0, cBottom - mountingPx)}px ${Math.max(0, cLeft - mountingPx)}px`;
       matOuter.style.background = getMatPreviewBackground();
-      matOuter.style.border = `${bevelPx}px solid #ffffff`; // 45° kesim
-      matOuter.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,0.08)";
+      matOuter.style.border = "none";
+      matOuter.style.boxShadow = bevelShadow; // 45° beyaz kesim
 
-      // İÇ PASPARTU - altta, montaj genişliği kadar görünür
+      // İÇ PASPARTU (YEŞİL alan resimdeki gibi - 5mm ince şerit)
       if (matInner) {
-        const innerPad = Math.max(0, mountingPx - bevelPx);
         matInner.style.width = "100%";
         matInner.style.height = "100%";
-        matInner.style.padding = `${innerPad}px`;
+        matInner.style.padding = `${mountingPx}px`;
         matInner.style.background = getMat2PreviewBackground();
-        matInner.style.border = `${bevelPx}px solid #ffffff`; // 45° kesim
-        matInner.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,0.08)";
+        matInner.style.border = "none";
+        matInner.style.boxShadow = bevelShadow; // 45° beyaz kesim
       }
 
     } else {
@@ -1655,22 +1642,19 @@
       matOuter.style.height = "100%";
 
       if (STATE.matTypePriceM2 > 0) {
-        // Paspartu var
-        const padTop = Math.max(0, cTop - bevelPx);
-        const padRight = Math.max(0, cRight - bevelPx);
-        const padBottom = Math.max(0, cBottom - bevelPx);
-        const padLeft = Math.max(0, cLeft - bevelPx);
-
-        matOuter.style.padding = `${padTop}px ${padRight}px ${padBottom}px ${padLeft}px`;
+        matOuter.style.padding = `${cTop}px ${cRight}px ${cBottom}px ${cLeft}px`;
         matOuter.style.background = getMatPreviewBackground();
-        matOuter.style.border = `${bevelPx}px solid #ffffff`; // 45° kesim
-        matOuter.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,0.08)";
+        matOuter.style.border = "none";
+        matOuter.style.boxShadow = bevelShadow; // 45° beyaz kesim
       } else {
-        // Paspartu yok
         matOuter.style.padding = "0px";
         matOuter.style.background = "#ffffff";
         matOuter.style.border = "none";
         matOuter.style.boxShadow = "none";
+      }
+
+      if (matInner) {
+        matInner.style.boxShadow = "none";
       }
     }
 
@@ -1678,7 +1662,6 @@
     if (activeArt) {
       activeArt.style.width = `${artWpx}px`;
       activeArt.style.height = `${artHpx}px`;
-      activeArt.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,0.1)";
     }
 
     // Cam efekti
