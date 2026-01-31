@@ -762,8 +762,15 @@
         align-items:center;
         justify-content:center;
         box-sizing:border-box;
-        transition: all 0.3s ease;
-        position: relative;
+      }
+
+      /* 45° Bevel - Beyaz kesim çizgisi */
+      .olga-bevel-outer, .olga-bevel-inner{
+        background: #ffffff;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        box-sizing:border-box;
       }
 
       /* İç Paspartu */
@@ -773,8 +780,6 @@
         align-items:center;
         justify-content:center;
         box-sizing:border-box;
-        transition: all 0.3s ease;
-        position: relative;
       }
 
       /* Eser Alanı */
@@ -783,12 +788,7 @@
         display:flex;
         align-items:center;
         justify-content:center;
-        font-size: 11px;
-        color: #888;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: all 0.3s ease;
+        box-sizing:border-box;
       }
 
       .olga-glass{
@@ -1032,15 +1032,21 @@
         </div>
         <div class="olga-preview-box">
           <div class="olga-frame" id="olga_frame">
-            <!-- Dış Paspartu (kenarlar - montaj genişliği) -->
+            <!-- Dış Paspartu -->
             <div class="olga-mat-outer" id="olga_mat_outer">
-              <!-- İç Paspartu (montaj genişliği, çift paspartu için) -->
-              <div class="olga-mat-inner" id="olga_mat_inner" style="display:none;">
-                <!-- Eser (çift paspartu) -->
-                <div class="olga-art" id="olga_art"></div>
+              <!-- 45° Bevel - Dış paspartu kesimi -->
+              <div class="olga-bevel-outer" id="olga_bevel_outer">
+                <!-- TEK paspartu için eser -->
+                <div class="olga-art-single" id="olga_art_single"></div>
+                <!-- ÇİFT paspartu için iç katman -->
+                <div class="olga-mat-inner" id="olga_mat_inner" style="display:none;">
+                  <!-- 45° Bevel - İç paspartu kesimi -->
+                  <div class="olga-bevel-inner" id="olga_bevel_inner">
+                    <!-- Eser -->
+                    <div class="olga-art" id="olga_art"></div>
+                  </div>
+                </div>
               </div>
-              <!-- Eser (tek paspartu) -->
-              <div class="olga-art-single" id="olga_art_single"></div>
             </div>
             <div class="olga-glass" id="olga_glass" style="display:none"></div>
           </div>
@@ -1534,7 +1540,9 @@
   function updateLivePreview() {
     const frame = document.getElementById("olga_frame");
     const matOuter = document.getElementById("olga_mat_outer");
+    const bevelOuter = document.getElementById("olga_bevel_outer");
     const matInner = document.getElementById("olga_mat_inner");
+    const bevelInner = document.getElementById("olga_bevel_inner");
     const art = document.getElementById("olga_art");
     const artSingle = document.getElementById("olga_art_single");
     const glass = document.getElementById("olga_glass");
@@ -1542,7 +1550,7 @@
     const note = document.getElementById("olga_preview_note");
     const box = document.querySelector("#olga_preview_card .olga-preview-box");
 
-    if (!frame || !matOuter || !box) return;
+    if (!frame || !matOuter || !bevelOuter || !box) return;
 
     const boxW = box.clientWidth;
     const boxH = box.clientHeight;
@@ -1550,29 +1558,33 @@
     // Çift paspartu modunu kontrol et
     const isDouble = STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0;
 
-    // İç paspartu ve eser görünürlüğü
-    if (matInner) matInner.style.display = isDouble ? "flex" : "none";
+    // 45° kesim (bevel) kalınlığı
+    const bevelPx = 2;
+
+    // Görünürlük ayarları
+    if (matInner) matInner.style.display = isDouble ? "block" : "none";
+    if (bevelInner) bevelInner.style.display = isDouble ? "flex" : "none";
     if (artSingle) artSingle.style.display = isDouble ? "none" : "flex";
     if (art) art.style.display = isDouble ? "flex" : "none";
 
     // Aktif eser alanı
     const activeArt = isDouble ? art : artSingle;
 
+    // Varsayılan durum (ölçü girilmemiş)
     if (!(STATE.artWMM > 0 && STATE.artHMM > 0) || boxW < 50 || boxH < 50) {
       frame.style.width = "160px";
       frame.style.height = "160px";
       frame.style.padding = "10px";
 
-      matOuter.style.width = "100%";
-      matOuter.style.height = "100%";
-      matOuter.style.padding = "18px";
+      matOuter.style.padding = "15px";
       matOuter.style.background = "#ffffff";
-      matOuter.style.border = "none";
-      matOuter.style.boxShadow = "none";
+      bevelOuter.style.padding = `${bevelPx}px`;
+      bevelOuter.style.background = "#ffffff";
 
       if (activeArt) {
         activeArt.style.width = "70px";
         activeArt.style.height = "70px";
+        activeArt.style.background = "#d0d0d0";
       }
 
       if (glass) glass.style.display = "none";
@@ -1581,6 +1593,7 @@
       return;
     }
 
+    // Boyut hesaplamaları
     const safePad = 14;
     const availW = Math.max(90, boxW - safePad * 2);
     const availH = Math.max(90, boxH - safePad * 2);
@@ -1588,21 +1601,21 @@
     const totalW = Math.max(STATE.totalWMM, STATE.artWMM);
     const totalH = Math.max(STATE.totalHMM, STATE.artHMM);
 
-    const borderPx = Math.max(8, Math.min(14, Math.round(Math.min(availW, availH) * 0.055)));
-    frame.style.padding = borderPx + "px";
+    const frameBorderPx = Math.max(8, Math.min(14, Math.round(Math.min(availW, availH) * 0.055)));
+    frame.style.padding = frameBorderPx + "px";
 
-    const innerW = Math.max(40, availW - borderPx * 2);
-    const innerH = Math.max(40, availH - borderPx * 2);
+    const innerW = Math.max(40, availW - frameBorderPx * 2);
+    const innerH = Math.max(40, availH - frameBorderPx * 2);
 
     const scale = Math.min(innerW / totalW, innerH / totalH);
 
     const contentW = Math.max(30, totalW * scale);
     const contentH = Math.max(30, totalH * scale);
 
-    frame.style.width = `${contentW + borderPx * 2}px`;
-    frame.style.height = `${contentH + borderPx * 2}px`;
+    frame.style.width = `${contentW + frameBorderPx * 2}px`;
+    frame.style.height = `${contentH + frameBorderPx * 2}px`;
 
-    // ========== PASPARTU KENARLARI ==========
+    // Paspartu kenar ölçüleri (px)
     const cTop = Math.min(Math.max(0, (STATE.matTop || 0) * scale), (contentH - 20) / 2);
     const cBottom = Math.min(Math.max(0, (STATE.matBottom || 0) * scale), (contentH - 20) / 2);
     const cLeft = Math.min(Math.max(0, (STATE.matLeft || 0) * scale), (contentW - 20) / 2);
@@ -1612,76 +1625,47 @@
     const artWpx = Math.max(22, STATE.artWMM * scale);
     const artHpx = Math.max(22, STATE.artHMM * scale);
 
-    // 45° kesim beyaz çizgi kalınlığı
-    const bevelPx = 2;
-
     // ========== ÇİFT PASPARTU ==========
     if (isDouble) {
       const mountingPx = Math.max(4, (STATE.mountingWidth || 5) * scale);
 
       // DIŞ PASPARTU - kalın renkli alan
-      // Padding = toplam kenar - montaj - bevel (beyaz çizgi için yer bırak)
-      const outerPad = {
-        top: Math.max(0, cTop - mountingPx - bevelPx),
-        right: Math.max(0, cRight - mountingPx - bevelPx),
-        bottom: Math.max(0, cBottom - mountingPx - bevelPx),
-        left: Math.max(0, cLeft - mountingPx - bevelPx)
-      };
-
-      matOuter.style.width = "100%";
-      matOuter.style.height = "100%";
-      matOuter.style.padding = `${outerPad.top}px ${outerPad.right}px ${outerPad.bottom}px ${outerPad.left}px`;
+      // Görünür kalınlık = kenarlar - montaj - bevel
+      matOuter.style.padding = `${Math.max(0, cTop - mountingPx - bevelPx)}px ${Math.max(0, cRight - mountingPx - bevelPx)}px ${Math.max(0, cBottom - mountingPx - bevelPx)}px ${Math.max(0, cLeft - mountingPx - bevelPx)}px`;
       matOuter.style.background = getMatPreviewBackground();
-      matOuter.style.border = "none";
-      matOuter.style.boxShadow = "none";
 
-      // İÇ PASPARTU - ince şerit (mountingPx kadar görünür)
-      // Dış kenarında beyaz border (dış paspartunun 45° kesimi)
-      // İç kenarında da beyaz border (kendi 45° kesimi)
+      // BEVEL OUTER - 45° beyaz kesim (dış paspartunun iç kenarı)
+      bevelOuter.style.padding = `${bevelPx}px`;
+      bevelOuter.style.background = "#ffffff";
+
+      // İÇ PASPARTU - ince şerit (montaj genişliği - bevel)
       if (matInner) {
-        const innerPad = Math.max(0, mountingPx - bevelPx);
-        matInner.style.width = "100%";
-        matInner.style.height = "100%";
-        matInner.style.padding = `${innerPad}px`;
+        matInner.style.padding = `${Math.max(0, mountingPx - bevelPx)}px`;
         matInner.style.background = getMat2PreviewBackground();
-        matInner.style.border = `${bevelPx}px solid #ffffff`; // Dış paspartunun 45° kesimi
-        matInner.style.boxShadow = `inset 0 0 0 ${bevelPx}px #ffffff`; // İç paspartunun 45° kesimi
+      }
+
+      // BEVEL INNER - 45° beyaz kesim (iç paspartunun iç kenarı)
+      if (bevelInner) {
+        bevelInner.style.padding = `${bevelPx}px`;
+        bevelInner.style.background = "#ffffff";
       }
 
     } else {
       // ========== TEK PASPARTU ==========
-      matOuter.style.width = "100%";
-      matOuter.style.height = "100%";
-
       if (STATE.matTypePriceM2 > 0) {
-        const padTop = Math.max(0, cTop - bevelPx);
-        const padRight = Math.max(0, cRight - bevelPx);
-        const padBottom = Math.max(0, cBottom - bevelPx);
-        const padLeft = Math.max(0, cLeft - bevelPx);
-
-        matOuter.style.padding = `${padTop}px ${padRight}px ${padBottom}px ${padLeft}px`;
+        // Paspartu var
+        matOuter.style.padding = `${Math.max(0, cTop - bevelPx)}px ${Math.max(0, cRight - bevelPx)}px ${Math.max(0, cBottom - bevelPx)}px ${Math.max(0, cLeft - bevelPx)}px`;
         matOuter.style.background = getMatPreviewBackground();
-        matOuter.style.border = "none";
-        matOuter.style.boxShadow = "none";
 
-        // Tek paspartuda artSingle'a beyaz border (45° kesim)
-        if (artSingle) {
-          artSingle.style.border = `${bevelPx}px solid #ffffff`;
-        }
+        // BEVEL OUTER - 45° beyaz kesim
+        bevelOuter.style.padding = `${bevelPx}px`;
+        bevelOuter.style.background = "#ffffff";
       } else {
+        // Paspartu yok
         matOuter.style.padding = "0px";
         matOuter.style.background = "#ffffff";
-        matOuter.style.border = "none";
-        matOuter.style.boxShadow = "none";
-
-        if (artSingle) {
-          artSingle.style.border = "none";
-        }
-      }
-
-      if (matInner) {
-        matInner.style.border = "none";
-        matInner.style.boxShadow = "none";
+        bevelOuter.style.padding = "0px";
+        bevelOuter.style.background = "transparent";
       }
     }
 
@@ -1689,11 +1673,7 @@
     if (activeArt) {
       activeArt.style.width = `${artWpx}px`;
       activeArt.style.height = `${artHpx}px`;
-    }
-
-    // Çift paspartuda art'a border yok (matInner'ın inset shadow'u var)
-    if (isDouble && art) {
-      art.style.border = "none";
+      activeArt.style.background = "#d0d0d0";
     }
 
     // Cam efekti
