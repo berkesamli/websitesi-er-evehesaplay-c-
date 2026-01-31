@@ -1778,11 +1778,6 @@
 
     const areaM2 = (totalWMM / 1000) * (totalHMM / 1000);
 
-    // Paspartu alanı = Toplam çerçeve alanı - Eser alanı
-    // Her iki paspartu da aynı boyutta kartondan kesilir
-    const artAreaM2 = (artWMM / 1000) * (artHMM / 1000);
-    const matAreaM2 = areaM2 - artAreaM2;
-
     const perimeterM = (2 * (totalWMM + totalHMM)) / 1000;
     const totalMeter = perimeterM + FIRE_M;
 
@@ -1790,12 +1785,12 @@
 
     const frameCostOne = (unitPrice > 0 && areaM2 > 0) ? (totalMeter * unitPrice) : 0;
 
-    // 1. katman (dış paspartu) maliyeti
-    const matCostOne = hasMat ? (matAreaM2 * matTypePriceM2) : 0;
+    // 1. katman (dış paspartu) maliyeti - dış alan üzerinden
+    const matCostOne = hasMat ? (areaM2 * matTypePriceM2) : 0;
 
-    // 2. katman (iç paspartu) maliyeti - aynı alan, ayrı fiyat
-    // Çift paspartuda her iki karton da aynı boyutta kesilir = x2 maliyet
-    const mat2CostOne = hasMat2 ? (matAreaM2 * mat2TypePriceM2) : 0;
+    // 2. katman (iç paspartu) maliyeti - dış alan üzerinden
+    // Çift paspartuda her iki karton da dış alan üzerinden hesaplanır = x2
+    const mat2CostOne = hasMat2 ? (areaM2 * mat2TypePriceM2) : 0;
 
     const glassCostOne = areaM2 * (STATE.glassPriceM2 || 0);
 
