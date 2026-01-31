@@ -1,1 +1,0 @@
-# websitesi-er-evehesaplay-c-
