@@ -956,11 +956,11 @@
           </div>
           <div class="olga-chip" data-mat-mode="double" style="flex:1; text-align:center;">
             <b>Çift Paspartu</b>
-            <small>İç + Dış katman</small>
+            <small>Dış + Alt katman</small>
           </div>
         </div>
 
-        <!-- 1. Katman (İç Paspartu) -->
+        <!-- TEK PASPARTU veya ÇİFT'te DIŞ PASPARTU (üstte görünen, kalın) -->
         <div class="olga-mat-layer" id="olga_mat_layer1">
           <div class="olga-title" style="font-size:13px;"><span id="olga_mat1_title">Paspartu Türü</span></div>
           <select id="olga_mat_type" class="olga-select">${matOptions}</select>
@@ -981,9 +981,9 @@
           </div>
         </div>
 
-        <!-- 2. Katman (Dış Paspartu) - Çift paspartu seçildiğinde görünür -->
+        <!-- ÇİFT PASPARTU: ALT PASPARTU (altta görünen ince şerit) -->
         <div class="olga-mat-layer" id="olga_mat_layer2" style="display:none; margin-top:14px; padding-top:14px; border-top:2px dashed #e7e1da;">
-          <div class="olga-title" style="font-size:13px;">Dış Paspartu (2. Katman)</div>
+          <div class="olga-title" style="font-size:13px;">Alt Paspartu (İnce Şerit)</div>
 
           <select id="olga_mat2_type" class="olga-select">${matOptions}</select>
 
@@ -994,11 +994,11 @@
                 <label style="font-size:13px; font-weight:600; color:#2b241b; white-space:nowrap;">Alt Montaj Genişliği:</label>
                 <input type="number" id="olga_mounting_width" value="5" min="1" max="30" style="width:65px; padding:8px 10px; border:1px solid #d8cfc6; border-radius:8px; font-size:14px; font-weight:600; text-align:center;">
                 <span style="font-size:12px; color:#6b6259;">mm</span>
-                <span class="cc-info-icon" data-tooltip="İç paspartunun etrafında görünecek dış paspartu genişliği." style="margin-left:auto;">i</span>
+                <span class="cc-info-icon" data-tooltip="Dış paspartunun altından görünecek ince şerit genişliği." style="margin-left:auto;">i</span>
               </div>
             </div>
 
-            <div class="olga-title" style="margin-top:12px">Dış Paspartu Rengi</div>
+            <div class="olga-title" style="margin-top:12px">Alt Paspartu Rengi</div>
             <div class="olga-palette-wrap">
               <div class="olga-palette" id="olga_mat2_palette"></div>
             </div>
@@ -1180,7 +1180,7 @@
 
         if (STATE.isDoubleMat) {
           if (layer2) layer2.style.display = "block";
-          if (mat1Title) mat1Title.textContent = "İç Paspartu (1. Katman)";
+          if (mat1Title) mat1Title.textContent = "Dış Paspartu (Üst Katman)";
           announceToSR("Çift paspartu seçildi");
         } else {
           if (layer2) layer2.style.display = "none";
@@ -1596,17 +1596,7 @@
     frame.style.width = `${frameWpx}px`;
     frame.style.height = `${frameHpx}px`;
 
-    // ========== 2. KATMAN PADDING (DIŞ - Alt Montaj Genişliği) ==========
-    if (mat2 && STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
-      // Mounting width tüm kenarlara eşit uygulanır
-      const mountingPx = Math.max(2, (STATE.mountingWidth || 5) * scale);
-
-      mat2.style.padding = `${mountingPx}px`;
-      mat2.style.background = getMat2PreviewBackground();
-      mat2.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.08)";
-    }
-
-    // ========== 1. KATMAN PADDING (İÇ) ==========
+    // ========== PASPARTU PADDINGLERİ ==========
     const pTop = Math.max(0, (STATE.matTop || 0) * scale);
     const pBottom = Math.max(0, (STATE.matBottom || 0) * scale);
     const pLeft = Math.max(0, (STATE.matLeft || 0) * scale);
@@ -1620,22 +1610,42 @@
     const cLeft = Math.min(pLeft, maxPadX);
     const cRight = Math.min(pRight, maxPadX);
 
-    mat.style.padding = `${cTop}px ${cRight}px ${cBottom}px ${cLeft}px`;
+    // ÇİFT PASPARTU: mat2 = DIŞ (kalın kenarlar), mat = ALT (ince şerit)
+    if (mat2 && STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
+      // mat2 (dış, üstte görünen) = KALIN kenarlar
+      mat2.style.padding = `${cTop}px ${cRight}px ${cBottom}px ${cLeft}px`;
+      mat2.style.background = getMatPreviewBackground(); // Ana paspartu rengi
+      mat2.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.08)";
 
-    if (STATE.matTypePriceM2 > 0) {
-      mat.style.background = getMatPreviewBackground();
+      // mat (alt, ince şerit) = mounting width
+      const mountingPx = Math.max(2, (STATE.mountingWidth || 5) * scale);
+      mat.style.padding = `${mountingPx}px`;
+      mat.style.background = getMat2PreviewBackground(); // Alt paspartu rengi
       mat.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.08)";
     } else {
-      mat.style.background = "#ffffff";
-      mat.style.boxShadow = "none";
+      // TEK PASPARTU: sadece mat kullanılır
+      mat.style.padding = `${cTop}px ${cRight}px ${cBottom}px ${cLeft}px`;
+
+      if (STATE.matTypePriceM2 > 0) {
+        mat.style.background = getMatPreviewBackground();
+        mat.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.08)";
+      } else {
+        mat.style.background = "#ffffff";
+        mat.style.boxShadow = "none";
+      }
     }
 
     const artWpx = Math.max(22, STATE.artWMM * scale);
     const artHpx = Math.max(22, STATE.artHMM * scale);
 
-    // 45 derece açı efekti - paspartunun iç kenarında (eser etrafında) beyaz şerit
-    // Her zaman aktif - paspartu varsa beyazlık görünür
-    if (STATE.matTypePriceM2 > 0) {
+    // 45 derece açı efekti - beyaz şerit
+    if (mat2 && STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
+      // Çift paspartu: Beyazlık dış paspartunun iç kenarında (mat ile mat2 arasında)
+      mat.style.boxShadow = "0 0 0 2px #ffffff, 0 0 0 3px rgba(0,0,0,.15), inset 0 0 0 1px rgba(0,0,0,.08)";
+      art.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,0.1)";
+    } else if (STATE.matTypePriceM2 > 0) {
+      // Tek paspartu: Beyazlık eser etrafında
+      mat.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.08)";
       art.style.boxShadow = "0 0 0 2px #ffffff, 0 0 0 3px rgba(0,0,0,.12), inset 0 0 0 1px rgba(0,0,0,.08)";
     } else {
       art.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,0.1)";
@@ -1654,8 +1664,8 @@
       let matTxt = "";
       if (STATE.matTypePriceM2 > 0) {
         if (STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
-          matTxt = `İç: ${STATE.matTypeLabel} (${STATE.matColorCode}) | Dış: ${STATE.mat2TypeLabel} (${STATE.mat2ColorCode})`;
-          if (STATE.mountingWidth > 0) matTxt += ` | Montaj: ${STATE.mountingWidth}mm`;
+          matTxt = `Dış: ${STATE.matTypeLabel} (${STATE.matColorCode}) | Alt: ${STATE.mat2TypeLabel} (${STATE.mat2ColorCode})`;
+          if (STATE.mountingWidth > 0) matTxt += ` | ${STATE.mountingWidth}mm`;
         } else {
           matTxt = `Paspartu: ${STATE.matTypeLabel} (${STATE.matColorCode})`;
         }
