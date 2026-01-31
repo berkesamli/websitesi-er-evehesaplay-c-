@@ -23,6 +23,7 @@
   const GLASS_OPTIONS = [
     { id: "none",   label: "Cam Yok",   desc: "Cam kullanılmadan hazırlanır.", priceM2: 0 },
     { id: "plain",  label: "Düz Cam",   desc: "Temel koruma sağlar.",          priceM2: 1250 },
+    { id: "pvc",    label: "PVC Cam",   desc: "Hafif ve kırılmaz alternatif.", priceM2: 1250 },
     { id: "mat",    label: "Mat Cam",   desc: "Yansımayı azaltır.",            priceM2: 1750 },
     { id: "museum", label: "Müze Camı", desc: "UV korumalı müze kalitesi.",    priceM2: 12000 },
   ];
@@ -87,6 +88,7 @@
     sku: "-",
     qty: 1,
 
+    // 1. Katman (İç Paspartu)
     matTypePriceM2: 0,
     matTypeLabel: "Paspartu Olmasın",
     matColorCode: "-",
@@ -96,12 +98,146 @@
     matLeft: 0,
     matRight: 0,
 
+    // 45 Derece Açı (Beyazlık)
+    mat45Degree: true, // varsayılan açık
+
+    // Çift Paspartu (2. Katman - Dış Paspartu)
+    isDoubleMat: false,
+    mat2TypePriceM2: 0,
+    mat2TypeLabel: "Paspartu Olmasın",
+    mat2ColorCode: "-",
+    mat2ColorHex: "#ffffff",
+    mat2Top: 0,
+    mat2Bottom: 0,
+    mat2Left: 0,
+    mat2Right: 0,
+    mat2Cost: 0,
+
     glassId: "none",
     glassLabel: "Cam Yok",
     glassPriceM2: 0,
   };
 
-  /* ---------------- Helpers ---------------- */
+  /* ---------------- Premium Helpers ---------------- */
+
+  // Debounce fonksiyonu - performans optimizasyonu
+  function debounce(func, wait = 150) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  // Throttle fonksiyonu - yoğun eventler için
+  function throttle(func, limit = 100) {
+    let inThrottle;
+    return function(...args) {
+      if (!inThrottle) {
+        func.apply(this, args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
+    };
+  }
+
+  // Ripple efekti oluştur
+  function createRipple(event, element) {
+    const rect = element.getBoundingClientRect();
+    const ripple = document.createElement("span");
+    ripple.className = "olga-ripple";
+
+    const size = Math.max(rect.width, rect.height);
+    ripple.style.width = ripple.style.height = size + "px";
+    ripple.style.left = (event.clientX - rect.left - size / 2) + "px";
+    ripple.style.top = (event.clientY - rect.top - size / 2) + "px";
+
+    element.appendChild(ripple);
+    ripple.addEventListener("animationend", () => ripple.remove());
+  }
+
+  // Loading state yönetimi
+  function setLoading(element, isLoading) {
+    if (!element) return;
+    if (isLoading) {
+      element.classList.add("olga-loading");
+      element.setAttribute("aria-busy", "true");
+    } else {
+      element.classList.remove("olga-loading");
+      element.setAttribute("aria-busy", "false");
+    }
+  }
+
+  // Error state yönetimi
+  function showInputError(inputEl, message) {
+    if (!inputEl) return;
+    inputEl.classList.add("olga-input-error");
+    inputEl.setAttribute("aria-invalid", "true");
+
+    // Tooltip göster
+    const tooltip = document.createElement("div");
+    tooltip.className = "olga-tooltip";
+    tooltip.textContent = message;
+    tooltip.style.position = "absolute";
+
+    const rect = inputEl.getBoundingClientRect();
+    tooltip.style.left = rect.left + (rect.width / 2) - 100 + "px";
+    tooltip.style.top = rect.top - 40 + "px";
+    document.body.appendChild(tooltip);
+
+    setTimeout(() => {
+      inputEl.classList.remove("olga-input-error");
+      inputEl.setAttribute("aria-invalid", "false");
+      tooltip.remove();
+    }, 2000);
+  }
+
+  // Başarılı güncelleme animasyonu
+  function showPriceUpdate(element) {
+    if (!element) return;
+    element.classList.remove("olga-price-updated");
+    void element.offsetWidth; // Reflow trigger
+    element.classList.add("olga-price-updated");
+  }
+
+  // Safe number parse
+  function safeParseFloat(value, defaultValue = 0) {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) || !isFinite(parsed) ? defaultValue : parsed;
+  }
+
+  // Safe integer parse
+  function safeParseInt(value, defaultValue = 0) {
+    const parsed = parseInt(value, 10);
+    return isNaN(parsed) || !isFinite(parsed) ? defaultValue : parsed;
+  }
+
+  // Validate dimension
+  function validateDimension(value, min = 15, max = 2900) {
+    const num = safeParseFloat(value);
+    if (num < min) return { valid: false, error: `Minimum ${min} mm olmalı` };
+    if (num > max) return { valid: false, error: `Maximum ${max} mm olmalı` };
+    return { valid: true, value: num };
+  }
+
+  // Announce to screen readers
+  function announceToSR(message) {
+    let announcer = document.getElementById("olga-sr-announcer");
+    if (!announcer) {
+      announcer = document.createElement("div");
+      announcer.id = "olga-sr-announcer";
+      announcer.setAttribute("role", "status");
+      announcer.setAttribute("aria-live", "polite");
+      announcer.setAttribute("aria-atomic", "true");
+      announcer.style.cssText = "position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;";
+      document.body.appendChild(announcer);
+    }
+    announcer.textContent = message;
+  }
 
   function getMM(val, unit) { return unit === "cm" ? val * 10 : val; }
 
@@ -291,85 +427,347 @@
     const st = document.createElement("style");
     st.id = "olga-extra-style";
     st.textContent = `
-      .olga-card{ margin-top:14px; padding:12px; border:1px solid #e7e1da; border-radius:10px; background:#faf8f6; }
-      .olga-title{ font-weight:800; margin-bottom:8px; color:#2b241b; }
-      .olga-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-      .olga-chip{
-        padding:10px; border:1px solid #d8cfc6; border-radius:10px;
-        background:#fff; cursor:pointer; text-align:left;
-        transition: .15s ease; user-select:none;
+      /* ========== PREMIUM ANIMATIONS ========== */
+      @keyframes olga-fadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
       }
-      .olga-chip:hover{ border-color: rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}); transform: translateY(-1px); }
-      .olga-chip.selected{
-        border-color: rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b});
-        box-shadow:0 4px 14px rgba(0,0,0,.06);
-        background:#fff7ef;
+      @keyframes olga-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0.4); }
+        50% { box-shadow: 0 0 0 8px rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0); }
       }
-      .olga-chip b{ display:block; font-size:13px; }
-      .olga-chip small{ display:block; opacity:.75; font-size:12px; margin-top:2px; }
-
-      .olga-select{ width:100%; padding:10px; border-radius:10px; border:1px solid #ccc; background:#fff; }
-
-      .olga-row{ display:flex; gap:8px; flex-wrap:wrap; }
-      .olga-col{ display:flex; flex-direction:column; }
-      .olga-col label{ font-size:12px; opacity:.9; margin-top:6px; }
-      .olga-row input{ width:92px; padding:8px; border:1px solid #ccc; border-radius:8px; background:#fff; }
-
-      .olga-palette-wrap{
-        margin-top:8px; padding:10px; border-radius:10px;
-        border:1px solid #e7e1da; background:#fff;
-        max-height: 210px; overflow:auto;
+      @keyframes olga-shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
       }
-      .olga-palette{ display:grid; grid-template-columns: repeat(6, 1fr); gap:10px; }
-      @media (max-width: 520px){ .olga-palette{ grid-template-columns: repeat(4, 1fr); } }
-
-      .olga-color-item{ text-align:center; }
-      .olga-color{
-        width:28px; height:28px; border-radius:0px; border:2px solid #cfc7bf;
-        cursor:pointer; margin:0 auto;
+      @keyframes olga-ripple {
+        to { transform: scale(4); opacity: 0; }
       }
-      .olga-color.selected{ border-color: rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}); }
-      .olga-code{ font-size:10px; opacity:.85; margin-top:4px; }
+      @keyframes olga-shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-4px); }
+        75% { transform: translateX(4px); }
+      }
+      @keyframes olga-bounce {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+      }
+      @keyframes olga-glow {
+        0%, 100% { box-shadow: 0 0 5px rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0.3); }
+        50% { box-shadow: 0 0 20px rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0.6); }
+      }
+      @keyframes olga-spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
 
-      .olga-preview-card{
-        margin:12px 0;
+      /* ========== GLASSMORPHISM BASE ========== */
+      .olga-glass-effect {
+        background: rgba(255, 255, 255, 0.85) !important;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      }
+
+      /* ========== CARD STYLES ========== */
+      .olga-card{
+        margin-top:14px;
         padding:12px;
         border:1px solid #e7e1da;
-        border-radius:12px;
-        background:#fff;
-        box-shadow:0 2px 10px rgba(0,0,0,.04);
+        border-radius:14px;
+        background: linear-gradient(135deg, #fdfcfb 0%, #f7f4f1 100%);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        animation: olga-fadeIn 0.4s ease-out;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
-      .olga-preview-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-      .olga-preview-head b{ font-size:14px; color:#2b241b; }
-      .olga-preview-sub{ font-size:12px; opacity:.75; }
+      .olga-card:hover {
+        box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+      }
+
+      .olga-title{
+        font-weight:800;
+        margin-bottom:10px;
+        color:#2b241b;
+        font-size: 14px;
+        letter-spacing: -0.3px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .olga-title::before {
+        content: '';
+        width: 4px;
+        height: 16px;
+        background: linear-gradient(180deg, rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}), #c9a66b);
+        border-radius: 2px;
+      }
+
+      /* ========== CHIP/BUTTON STYLES ========== */
+      .olga-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+      @media (max-width: 400px) { .olga-grid { grid-template-columns: 1fr; } }
+
+      .olga-chip{
+        padding:12px 14px;
+        border:1px solid #e0d6cc;
+        border-radius:12px;
+        background: linear-gradient(135deg, #ffffff 0%, #faf8f6 100%);
+        cursor:pointer;
+        text-align:left;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        user-select:none;
+        position: relative;
+        overflow: hidden;
+      }
+      .olga-chip::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b},0.05), transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .olga-chip:hover {
+        border-color: rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b});
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0.12);
+      }
+      .olga-chip:hover::before { opacity: 1; }
+      .olga-chip:active { transform: translateY(0) scale(0.98); }
+
+      .olga-chip.selected{
+        border-color: rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b});
+        background: linear-gradient(135deg, #fff7ef 0%, #fff3e6 100%);
+        box-shadow: 0 4px 16px rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0.15);
+        animation: olga-bounce 0.3s ease;
+      }
+      .olga-chip.selected::after {
+        content: '✓';
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        font-size: 12px;
+        color: rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b});
+        font-weight: bold;
+      }
+      .olga-chip b{ display:block; font-size:13px; font-weight: 700; color: #2b241b; }
+      .olga-chip small{ display:block; opacity:.7; font-size:11px; margin-top:3px; line-height: 1.3; }
+
+      /* ========== RIPPLE EFFECT ========== */
+      .olga-ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0.3);
+        transform: scale(0);
+        animation: olga-ripple 0.6s linear;
+        pointer-events: none;
+      }
+
+      /* ========== SELECT STYLES ========== */
+      .olga-select{
+        width:100%;
+        padding:12px 14px;
+        border-radius:12px;
+        border:1px solid #d8cfc6;
+        background: linear-gradient(135deg, #ffffff 0%, #fdfcfb 100%);
+        font-size: 14px;
+        font-weight: 500;
+        color: #2b241b;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238c5919' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+      }
+      .olga-select:hover, .olga-select:focus {
+        border-color: rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b});
+        box-shadow: 0 0 0 3px rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0.1);
+        outline: none;
+      }
+
+      /* ========== INPUT STYLES ========== */
+      .olga-row{ display:flex; gap:10px; flex-wrap:wrap; }
+      .olga-col{ display:flex; flex-direction:column; flex: 1; min-width: 70px; }
+      .olga-col label{
+        font-size:11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        opacity:.8;
+        margin-top:6px;
+        margin-bottom: 4px;
+        color: #5a5047;
+      }
+      .olga-row input{
+        width: 100%;
+        padding:10px 12px;
+        border:1px solid #d8cfc6;
+        border-radius:10px;
+        background: linear-gradient(135deg, #ffffff 0%, #fdfcfb 100%);
+        font-size: 14px;
+        font-weight: 600;
+        color: #2b241b;
+        transition: all 0.25s ease;
+        box-sizing: border-box;
+      }
+      .olga-row input:hover {
+        border-color: #c9bfb3;
+      }
+      .olga-row input:focus {
+        border-color: rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b});
+        box-shadow: 0 0 0 3px rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0.1);
+        outline: none;
+      }
+      .olga-row input.olga-input-error {
+        border-color: #e53935;
+        animation: olga-shake 0.4s ease;
+      }
+
+      /* ========== PALETTE STYLES ========== */
+      .olga-palette-wrap{
+        margin-top:10px;
+        padding:12px;
+        border-radius:12px;
+        border:1px solid #e7e1da;
+        background: linear-gradient(135deg, #ffffff 0%, #fdfcfb 100%);
+        max-height: 220px;
+        overflow:auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0.3) transparent;
+      }
+      .olga-palette-wrap::-webkit-scrollbar { width: 6px; }
+      .olga-palette-wrap::-webkit-scrollbar-track { background: transparent; }
+      .olga-palette-wrap::-webkit-scrollbar-thumb {
+        background: rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0.3);
+        border-radius: 3px;
+      }
+
+      .olga-palette{ display:grid; grid-template-columns: repeat(6, 1fr); gap:12px; }
+      @media (max-width: 520px){ .olga-palette{ grid-template-columns: repeat(4, 1fr); } }
+
+      .olga-color-item{
+        text-align:center;
+        transition: transform 0.2s ease;
+      }
+      .olga-color-item:hover { transform: scale(1.1); }
+
+      .olga-color{
+        width:32px;
+        height:32px;
+        border-radius:6px;
+        border:2px solid #e0d6cc;
+        cursor:pointer;
+        margin:0 auto;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      }
+      .olga-color:hover {
+        border-color: rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b});
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      }
+      .olga-color.selected{
+        border-color: rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b});
+        box-shadow: 0 0 0 3px rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0.3);
+        animation: olga-pulse 1.5s ease infinite;
+      }
+      .olga-code{ font-size:9px; font-weight: 600; opacity:.75; margin-top:5px; }
+
+      /* ========== PREVIEW CARD ========== */
+      .olga-preview-card{
+        margin:12px 0;
+        padding:16px;
+        border:1px solid #e7e1da;
+        border-radius:16px;
+        background: linear-gradient(135deg, #ffffff 0%, #fdfcfb 100%);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+        animation: olga-fadeIn 0.5s ease-out;
+        transition: all 0.3s ease;
+      }
+      .olga-preview-card:hover {
+        box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+      }
+
+      .olga-preview-head{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        margin-bottom:12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f0ebe6;
+      }
+      .olga-preview-head b{
+        font-size:15px;
+        color:#2b241b;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .olga-preview-head b::before {
+        content: '🖼️';
+        font-size: 16px;
+      }
+      .olga-preview-sub{
+        font-size:12px;
+        font-weight: 600;
+        color: rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b});
+        background: rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0.1);
+        padding: 4px 10px;
+        border-radius: 20px;
+      }
 
       .olga-preview-box{
         width:100%;
-        height:220px;
-        border:1px dashed #d8cfc6;
-        border-radius:12px;
-        background: #faf8f6;
+        height:240px;
+        border:2px dashed #e0d6cc;
+        border-radius:14px;
+        background: linear-gradient(135deg, #faf8f6 0%, #f5f2ef 100%);
         display:flex;
         align-items:center;
         justify-content:center;
-        padding:14px;
+        padding:16px;
         box-sizing:border-box;
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      .olga-preview-box::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%);
+        background-size: 200% 200%;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .olga-preview-box:hover::before {
+        opacity: 1;
+        animation: olga-shimmer 2s infinite;
       }
 
-      /* ✅ Siyah çerçeve BACKGROUND + PADDING */
+      /* ========== FRAME PREVIEW ========== */
       .olga-frame{
-        background:#2b241b;
+        background: linear-gradient(145deg, #3a3228, #1e1a15);
         display:block;
         box-sizing:border-box;
+        box-shadow:
+          0 8px 32px rgba(0,0,0,0.3),
+          inset 0 1px 0 rgba(255,255,255,0.1);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       }
       .olga-frame-inner{
-        background:#ffffff;
+        background: linear-gradient(135deg, #ffffff 0%, #f9f7f5 100%);
         width:100%;
         height:100%;
         display:flex;
         align-items:center;
         justify-content:center;
         box-sizing:border-box;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
       }
 
       .olga-mat{
@@ -379,18 +777,148 @@
         justify-content:center;
         box-sizing:border-box;
         position:relative;
+        transition: all 0.3s ease;
       }
       .olga-art{
-        background:#e8e8e8;
-        box-shadow: inset 0 0 0 1px rgba(0,0,0,.06);
+        background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+        box-shadow:
+          inset 0 0 0 1px rgba(0,0,0,.08),
+          0 2px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
       }
       .olga-glass{
         position:absolute;
         inset:0;
         pointer-events:none;
-        background: linear-gradient(135deg, rgba(255,255,255,.22), rgba(255,255,255,0));
+        background: linear-gradient(135deg, rgba(255,255,255,.25) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,.1) 100%);
+        transition: opacity 0.3s ease;
       }
-      .olga-note{ margin-top:8px; font-size:12px; opacity:.78; }
+      .olga-note{
+        margin-top:10px;
+        font-size:12px;
+        color: #6b6259;
+        text-align: center;
+        line-height: 1.4;
+      }
+
+      /* ========== LOADING STATE ========== */
+      .olga-loading {
+        position: relative;
+        pointer-events: none;
+      }
+      .olga-loading::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(255,255,255,0.8);
+        border-radius: inherit;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .olga-spinner {
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0.2);
+        border-top-color: rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b});
+        border-radius: 50%;
+        animation: olga-spin 0.8s linear infinite;
+      }
+
+      /* ========== BUTTON PREMIUM STYLES ========== */
+      .cc-panel button,
+      #olga_whatsapp_btn {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        background: linear-gradient(135deg, rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}) 0%, #a36b2a 100%) !important;
+        box-shadow: 0 4px 15px rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0.3);
+      }
+      .cc-panel button:hover,
+      #olga_whatsapp_btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0.4) !important;
+      }
+      .cc-panel button:active,
+      #olga_whatsapp_btn:active {
+        transform: translateY(0) scale(0.98);
+      }
+
+      /* ========== SUMMARY BOX PREMIUM ========== */
+      .cc-summary-box {
+        background: linear-gradient(135deg, #f8f6f4 0%, #f0ebe6 100%) !important;
+        border-radius: 12px !important;
+        border: 1px solid #e7e1da !important;
+        padding: 14px !important;
+        transition: all 0.3s ease;
+      }
+      .cc-summary-box > div {
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+      }
+      .cc-summary-box > div:last-child {
+        border-bottom: none;
+      }
+      .cc-summary-box > div:hover {
+        padding-left: 8px;
+        background: rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0.03);
+        border-radius: 6px;
+      }
+
+      /* ========== PRICE HIGHLIGHT ========== */
+      #product_totalPrice {
+        font-size: 1.15em;
+        color: rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b});
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      }
+      .olga-price-updated {
+        animation: olga-glow 0.5s ease;
+      }
+
+      /* ========== ACCESSIBILITY FOCUS STATES ========== */
+      .olga-chip:focus-visible,
+      .olga-color:focus-visible,
+      .olga-select:focus-visible,
+      .olga-row input:focus-visible {
+        outline: 2px solid rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b});
+        outline-offset: 2px;
+      }
+
+      /* ========== TOOLTIP PREMIUM ========== */
+      .olga-tooltip {
+        position: absolute;
+        background: linear-gradient(135deg, #2b241b 0%, #3d352a 100%);
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 500;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        z-index: 1000;
+        animation: olga-fadeIn 0.2s ease;
+        max-width: 200px;
+        text-align: center;
+      }
+      .olga-tooltip::after {
+        content: '';
+        position: absolute;
+        bottom: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid #2b241b;
+      }
+
+      /* ========== REDUCED MOTION ========== */
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
     `;
     document.head.appendChild(st);
   }
@@ -425,20 +953,67 @@
         <div style="height:12px"></div>
 
         <div class="olga-title">Paspartu Seçimi</div>
-        <select id="olga_mat_type" class="olga-select">${matOptions}</select>
 
-        <div id="olga_mat_controls" style="display:none; margin-top:10px">
-          <div class="olga-title" style="margin-top:8px">Paspartu Kenarları (mm)</div>
-          <div class="olga-row">
-            <div class="olga-col"><label>Üst</label><input type="number" id="olga_mat_top" value="50" min="0"></div>
-            <div class="olga-col"><label>Alt</label><input type="number" id="olga_mat_bottom" value="50" min="0"></div>
-            <div class="olga-col"><label>Sol</label><input type="number" id="olga_mat_left" value="50" min="0"></div>
-            <div class="olga-col"><label>Sağ</label><input type="number" id="olga_mat_right" value="50" min="0"></div>
+        <!-- Tek/Çift Paspartu Toggle -->
+        <div class="olga-mat-mode" style="display:flex; gap:8px; margin-bottom:10px;">
+          <div class="olga-chip selected" data-mat-mode="single" style="flex:1; text-align:center;">
+            <b>Tek Paspartu</b>
+            <small>Standart tek katman</small>
           </div>
+          <div class="olga-chip" data-mat-mode="double" style="flex:1; text-align:center;">
+            <b>Çift Paspartu</b>
+            <small>İç + Dış katman</small>
+          </div>
+        </div>
 
-          <div class="olga-title" style="margin-top:12px">Paspartu Rengi</div>
-          <div class="olga-palette-wrap">
-            <div class="olga-palette" id="olga_mat_palette"></div>
+        <!-- 1. Katman (İç Paspartu) -->
+        <div class="olga-mat-layer" id="olga_mat_layer1">
+          <div class="olga-title" style="font-size:13px;"><span id="olga_mat1_title">Paspartu Türü</span></div>
+          <select id="olga_mat_type" class="olga-select">${matOptions}</select>
+
+          <div id="olga_mat_controls" style="display:none; margin-top:10px">
+            <!-- 45 Derece Açı Seçeneği -->
+            <div class="olga-45degree-wrap" style="margin-bottom:12px; padding:10px; background:linear-gradient(135deg,#f8f6f4,#f0ebe6); border-radius:10px; border:1px solid #e7e1da;">
+              <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:13px; font-weight:600; color:#2b241b;">
+                <input type="checkbox" id="olga_mat_45degree" checked style="width:18px; height:18px; accent-color:rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b});">
+                <span>45° Açılı Kesim (Beyazlık)</span>
+                <span class="cc-info-icon" data-tooltip="45 derece açıyla kesildiğinde paspartunun iç kenarında beyaz şerit görünür. Premium görünüm sağlar." style="margin-left:auto;">i</span>
+              </label>
+            </div>
+
+            <div class="olga-title" style="margin-top:8px">Paspartu Kenarları (mm)</div>
+            <div class="olga-row">
+              <div class="olga-col"><label>Üst</label><input type="number" id="olga_mat_top" value="50" min="0"></div>
+              <div class="olga-col"><label>Alt</label><input type="number" id="olga_mat_bottom" value="50" min="0"></div>
+              <div class="olga-col"><label>Sol</label><input type="number" id="olga_mat_left" value="50" min="0"></div>
+              <div class="olga-col"><label>Sağ</label><input type="number" id="olga_mat_right" value="50" min="0"></div>
+            </div>
+
+            <div class="olga-title" style="margin-top:12px">Paspartu Rengi</div>
+            <div class="olga-palette-wrap">
+              <div class="olga-palette" id="olga_mat_palette"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Katman (Dış Paspartu) - Çift paspartu seçildiğinde görünür -->
+        <div class="olga-mat-layer" id="olga_mat_layer2" style="display:none; margin-top:14px; padding-top:14px; border-top:2px dashed #e7e1da;">
+          <div class="olga-title" style="font-size:13px;">Dış Paspartu (2. Katman)</div>
+          <select id="olga_mat2_type" class="olga-select">${matOptions}</select>
+
+          <div id="olga_mat2_controls" style="display:none; margin-top:10px">
+            <div class="olga-title" style="margin-top:8px">Dış Paspartu Kenarları (mm)</div>
+            <div class="olga-row">
+              <div class="olga-col"><label>Üst</label><input type="number" id="olga_mat2_top" value="30" min="0"></div>
+              <div class="olga-col"><label>Alt</label><input type="number" id="olga_mat2_bottom" value="30" min="0"></div>
+              <div class="olga-col"><label>Sol</label><input type="number" id="olga_mat2_left" value="30" min="0"></div>
+              <div class="olga-col"><label>Sağ</label><input type="number" id="olga_mat2_right" value="30" min="0"></div>
+            </div>
+
+            <div class="olga-title" style="margin-top:12px">Dış Paspartu Rengi</div>
+            <div class="olga-palette-wrap">
+              <div class="olga-palette" id="olga_mat2_palette"></div>
+            </div>
           </div>
         </div>
       `;
@@ -504,19 +1079,21 @@
 
   /* ---------------- Palette ---------------- */
 
-  function renderMatPalette(matTypePriceM2) {
-    const palette = document.getElementById("olga_mat_palette");
+  // Generic palette render function - layer: 1 veya 2
+  function renderMatPaletteGeneric(matTypePriceM2, layer = 1) {
+    const paletteId = layer === 1 ? "olga_mat_palette" : "olga_mat2_palette";
+    const palette = document.getElementById(paletteId);
     if (!palette) return;
 
     palette.innerHTML = "";
 
     const list = PASPARTU_COLORS[matTypePriceM2] || [];
     if (!list.length) {
-      palette.innerHTML = `<div style="grid-column:1/-1;font-size:12px;opacity:.75">Bu paspartu türü için renk listesi bulunamadı.</div>`;
+      palette.innerHTML = `<div style="grid-column:1/-1;font-size:12px;opacity:.75" role="alert">Bu paspartu türü için renk listesi bulunamadı.</div>`;
       return;
     }
 
-    list.forEach(([code, hex]) => {
+    list.forEach(([code, hex], index) => {
       const item = document.createElement("div");
       item.className = "olga-color-item";
 
@@ -525,15 +1102,30 @@
       box.style.background = hex;
       box.dataset.code = code;
       box.dataset.hex = hex;
+      box.dataset.layer = layer;
       box.title = code;
 
-      // ✅ Metallic kutu
-      if (code === "W232") box.style.background = "linear-gradient(135deg,#fff0b8,#d4af37,#fff7d6,#b8860b)";
-      if (code === "W233") box.style.background = "linear-gradient(135deg,#ffffff,#cfcfcf,#f5f5f5,#9a9a9a)";
+      // Accessibility attributes
+      box.setAttribute("role", "option");
+      box.setAttribute("tabindex", "0");
+      box.setAttribute("aria-label", `Renk kodu: ${code}`);
+      box.setAttribute("aria-selected", "false");
+
+      // Metallic kutu with premium gradients
+      if (code === "W232") {
+        box.style.background = "linear-gradient(135deg,#fff0b8,#d4af37,#fff7d6,#b8860b)";
+        box.setAttribute("aria-label", `Altın renk, kod: ${code}`);
+      }
+      if (code === "W233") {
+        box.style.background = "linear-gradient(135deg,#ffffff,#cfcfcf,#f5f5f5,#9a9a9a)";
+        box.setAttribute("aria-label", `Gümüş renk, kod: ${code}`);
+      }
 
       const lbl = document.createElement("div");
       lbl.className = "olga-code";
       lbl.textContent = code;
+      lbl.id = `olga-color-label-${layer}-${index}`;
+      box.setAttribute("aria-labelledby", lbl.id);
 
       item.appendChild(box);
       item.appendChild(lbl);
@@ -542,12 +1134,35 @@
 
     const first = palette.querySelector(".olga-color");
     if (first) {
-      palette.querySelectorAll(".olga-color").forEach(x => x.classList.remove("selected"));
+      palette.querySelectorAll(".olga-color").forEach(x => {
+        x.classList.remove("selected");
+        x.setAttribute("aria-selected", "false");
+      });
       first.classList.add("selected");
-      STATE.matColorCode = first.dataset.code || "-";
-      STATE.matColorHex = first.dataset.hex || "#ffffff";
+      first.setAttribute("aria-selected", "true");
+
+      if (layer === 1) {
+        STATE.matColorCode = first.dataset.code || "-";
+        STATE.matColorHex = first.dataset.hex || "#ffffff";
+      } else {
+        STATE.mat2ColorCode = first.dataset.code || "-";
+        STATE.mat2ColorHex = first.dataset.hex || "#ffffff";
+      }
     }
   }
+
+  // Backward compatible wrapper
+  function renderMatPalette(matTypePriceM2) {
+    renderMatPaletteGeneric(matTypePriceM2, 1);
+  }
+
+  // 2. katman için palette render
+  function renderMat2Palette(matTypePriceM2) {
+    renderMatPaletteGeneric(matTypePriceM2, 2);
+  }
+
+  // Debounced calculate for performance
+  const debouncedCalculate = debounce(calculate, 150);
 
   function bindExtraUIEvents() {
     const glassGrid = document.getElementById("olga_glass_grid");
@@ -555,35 +1170,185 @@
     const matControls = document.getElementById("olga_mat_controls");
     const paletteWrap = document.getElementById("olga_mat_palette");
 
+    // ========== TEK/ÇİFT PASPARTU TOGGLE ==========
+    const matModeWrap = document.querySelector(".olga-mat-mode");
+    if (matModeWrap && !matModeWrap.__bound) {
+      matModeWrap.__bound = true;
+
+      matModeWrap.addEventListener("click", (e) => {
+        const chip = e.target.closest(".olga-chip");
+        if (!chip) return;
+
+        createRipple(e, chip);
+
+        matModeWrap.querySelectorAll(".olga-chip").forEach(x => x.classList.remove("selected"));
+        chip.classList.add("selected");
+
+        const mode = chip.dataset.matMode;
+        STATE.isDoubleMat = (mode === "double");
+
+        const layer2 = document.getElementById("olga_mat_layer2");
+        const mat1Title = document.getElementById("olga_mat1_title");
+
+        if (STATE.isDoubleMat) {
+          if (layer2) layer2.style.display = "block";
+          if (mat1Title) mat1Title.textContent = "İç Paspartu (1. Katman)";
+          announceToSR("Çift paspartu seçildi");
+        } else {
+          if (layer2) layer2.style.display = "none";
+          if (mat1Title) mat1Title.textContent = "Paspartu Türü";
+          announceToSR("Tek paspartu seçildi");
+        }
+
+        calculate();
+      });
+    }
+
+    // ========== 45 DERECE AÇI CHECKBOX ==========
+    const degree45El = document.getElementById("olga_mat_45degree");
+    if (degree45El && !degree45El.__bound) {
+      degree45El.__bound = true;
+      degree45El.addEventListener("change", () => {
+        STATE.mat45Degree = degree45El.checked;
+        announceToSR(degree45El.checked ? "45 derece açı aktif" : "45 derece açı kapalı");
+        calculate();
+      });
+    }
+
+    // ========== 2. KATMAN (DIŞ PASPARTU) ==========
+    const mat2TypeEl = document.getElementById("olga_mat2_type");
+    const mat2Controls = document.getElementById("olga_mat2_controls");
+    const palette2Wrap = document.getElementById("olga_mat2_palette");
+
+    if (mat2TypeEl && !mat2TypeEl.__bound) {
+      mat2TypeEl.__bound = true;
+      mat2TypeEl.setAttribute("aria-label", "Dış paspartu türü seçin");
+
+      mat2TypeEl.addEventListener("change", () => {
+        const v = safeParseFloat(mat2TypeEl.value, 0);
+        STATE.mat2TypePriceM2 = v;
+        STATE.mat2TypeLabel = MAT_TYPES.find(x => x.value === v)?.label || "Paspartu";
+
+        if (mat2Controls) {
+          mat2Controls.style.display = v > 0 ? "block" : "none";
+        }
+
+        const def = v > 0 ? 30 : 0;
+        ["olga_mat2_top","olga_mat2_bottom","olga_mat2_left","olga_mat2_right"].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = def;
+        });
+
+        if (v > 0) renderMat2Palette(v);
+        announceToSR(`Dış paspartu: ${STATE.mat2TypeLabel} seçildi`);
+        calculate();
+      });
+    }
+
+    // 2. katman kenar input'ları
+    ["olga_mat2_top","olga_mat2_bottom","olga_mat2_left","olga_mat2_right"].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el || el.__bound) return;
+      el.__bound = true;
+      el.setAttribute("aria-label", id.replace("olga_mat2_", "Dış paspartu ") + " kenarı (mm)");
+      el.addEventListener("input", debouncedCalculate);
+      el.addEventListener("change", calculate);
+    });
+
+    // 2. katman palette event
+    if (palette2Wrap && !palette2Wrap.__bound) {
+      palette2Wrap.__bound = true;
+      palette2Wrap.setAttribute("role", "listbox");
+      palette2Wrap.setAttribute("aria-label", "Dış paspartu renkleri");
+
+      palette2Wrap.addEventListener("click", (e) => {
+        const c = e.target.closest(".olga-color");
+        if (!c) return;
+
+        palette2Wrap.querySelectorAll(".olga-color").forEach(x => {
+          x.classList.remove("selected");
+          x.setAttribute("aria-selected", "false");
+        });
+        c.classList.add("selected");
+        c.setAttribute("aria-selected", "true");
+
+        STATE.mat2ColorCode = c.dataset.code || "-";
+        STATE.mat2ColorHex = c.dataset.hex || "#ffffff";
+
+        announceToSR(`Dış paspartu rengi: ${STATE.mat2ColorCode} seçildi`);
+        calculate();
+      });
+
+      palette2Wrap.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          const color = e.target.closest(".olga-color");
+          if (color) color.click();
+        }
+      });
+    }
+
     if (glassGrid && !glassGrid.__bound) {
       glassGrid.__bound = true;
+
+      // Accessibility: make chips focusable
+      glassGrid.querySelectorAll(".olga-chip").forEach((chip, index) => {
+        chip.setAttribute("tabindex", "0");
+        chip.setAttribute("role", "radio");
+        chip.setAttribute("aria-checked", chip.classList.contains("selected") ? "true" : "false");
+      });
+      glassGrid.setAttribute("role", "radiogroup");
+      glassGrid.setAttribute("aria-label", "Cam seçenekleri");
+
       glassGrid.addEventListener("click", (e) => {
         const chip = e.target.closest(".olga-chip");
         if (!chip) return;
 
-        glassGrid.querySelectorAll(".olga-chip").forEach(x => x.classList.remove("selected"));
+        // Ripple efekti
+        createRipple(e, chip);
+
+        glassGrid.querySelectorAll(".olga-chip").forEach(x => {
+          x.classList.remove("selected");
+          x.setAttribute("aria-checked", "false");
+        });
         chip.classList.add("selected");
+        chip.setAttribute("aria-checked", "true");
 
         const id = chip.dataset.glass || "none";
-        const price = parseFloat(chip.dataset.price || "0") || 0;
+        const price = safeParseFloat(chip.dataset.price, 0);
         const found = GLASS_OPTIONS.find(x => x.id === id);
 
         STATE.glassId = id;
         STATE.glassPriceM2 = price;
         STATE.glassLabel = found?.label || "Cam";
 
+        announceToSR(`${found?.label || "Cam"} seçildi`);
         calculate();
+      });
+
+      // Keyboard navigation
+      glassGrid.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          const chip = e.target.closest(".olga-chip");
+          if (chip) chip.click();
+        }
       });
     }
 
     if (matTypeEl && !matTypeEl.__bound) {
       matTypeEl.__bound = true;
+      matTypeEl.setAttribute("aria-label", "Paspartu türü seçin");
+
       matTypeEl.addEventListener("change", () => {
-        const v = parseFloat(matTypeEl.value || "0") || 0;
+        const v = safeParseFloat(matTypeEl.value, 0);
         STATE.matTypePriceM2 = v;
         STATE.matTypeLabel = MAT_TYPES.find(x => x.value === v)?.label || "Paspartu";
 
-        if (matControls) matControls.style.display = v > 0 ? "block" : "none";
+        if (matControls) {
+          matControls.style.display = v > 0 ? "block" : "none";
+          matControls.setAttribute("aria-hidden", v > 0 ? "false" : "true");
+        }
 
         const def = v > 0 ? 50 : 0;
         ["olga_mat_top","olga_mat_bottom","olga_mat_left","olga_mat_right"].forEach(id => {
@@ -592,12 +1357,16 @@
         });
 
         if (v > 0) renderMatPalette(v);
+        announceToSR(`${STATE.matTypeLabel} paspartu seçildi`);
         calculate();
       });
 
-      STATE.matTypePriceM2 = parseFloat(matTypeEl.value || "0") || 0;
+      STATE.matTypePriceM2 = safeParseFloat(matTypeEl.value, 0);
       STATE.matTypeLabel = MAT_TYPES.find(x => x.value === STATE.matTypePriceM2)?.label || "Paspartu";
-      if (matControls) matControls.style.display = STATE.matTypePriceM2 > 0 ? "block" : "none";
+      if (matControls) {
+        matControls.style.display = STATE.matTypePriceM2 > 0 ? "block" : "none";
+        matControls.setAttribute("aria-hidden", STATE.matTypePriceM2 > 0 ? "false" : "true");
+      }
       if (STATE.matTypePriceM2 > 0) renderMatPalette(STATE.matTypePriceM2);
     }
 
@@ -605,23 +1374,43 @@
       const el = document.getElementById(id);
       if (!el || el.__bound) return;
       el.__bound = true;
-      el.addEventListener("input", calculate);
+      el.setAttribute("aria-label", id.replace("olga_mat_", "Paspartu ") + " kenarı (mm)");
+
+      // Use debounced calculate for better performance
+      el.addEventListener("input", debouncedCalculate);
       el.addEventListener("change", calculate);
     });
 
     if (paletteWrap && !paletteWrap.__bound) {
       paletteWrap.__bound = true;
+      paletteWrap.setAttribute("role", "listbox");
+      paletteWrap.setAttribute("aria-label", "Paspartu renkleri");
+
       paletteWrap.addEventListener("click", (e) => {
         const c = e.target.closest(".olga-color");
         if (!c) return;
 
-        paletteWrap.querySelectorAll(".olga-color").forEach(x => x.classList.remove("selected"));
+        paletteWrap.querySelectorAll(".olga-color").forEach(x => {
+          x.classList.remove("selected");
+          x.setAttribute("aria-selected", "false");
+        });
         c.classList.add("selected");
+        c.setAttribute("aria-selected", "true");
 
         STATE.matColorCode = c.dataset.code || "-";
         STATE.matColorHex = c.dataset.hex || "#ffffff";
 
+        announceToSR(`${STATE.matColorCode} renk seçildi`);
         calculate();
+      });
+
+      // Keyboard navigation for colors
+      paletteWrap.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          const color = e.target.closest(".olga-color");
+          if (color) color.click();
+        }
       });
     }
   }
@@ -710,6 +1499,29 @@
      ✅ PREVIEW
   ========================================================= */
 
+  // 2. katman için arka plan
+  function getMat2PreviewBackground() {
+    const type = STATE.mat2TypePriceM2 || 0;
+    const code = (STATE.mat2ColorCode || "").toUpperCase();
+    const hex = STATE.mat2ColorHex || "#ffffff";
+
+    if (type === 1700) {
+      if (code === "W232") return "linear-gradient(135deg,#fff8d9 0%,#f4d98a 18%,#d4af37 42%,#fff2bf 55%,#b8860b 78%,#fff6cf 100%)";
+      if (code === "W233") return "linear-gradient(135deg,#ffffff 0%,#e6e6e6 18%,#bfbfbf 42%,#f8f8f8 55%,#9b9b9b 78%,#ffffff 100%)";
+      return hex;
+    }
+
+    if (type === 3000) {
+      return `radial-gradient(circle at 20% 15%, rgba(255,255,255,.10), rgba(255,255,255,0) 35%),
+              radial-gradient(circle at 80% 85%, rgba(0,0,0,.10), rgba(0,0,0,0) 40%),
+              repeating-linear-gradient(45deg, rgba(255,255,255,.06) 0 2px, rgba(0,0,0,.05) 2px 4px),
+              ${hex}`;
+    }
+
+    if (type === 1250) return hex;
+    return "#ffffff";
+  }
+
   function updateLivePreview() {
     const frame = document.getElementById("olga_frame");
     const frameInner = document.getElementById("olga_frame_inner");
@@ -731,11 +1543,35 @@
     const boxW = box.clientWidth;
     const boxH = box.clientHeight;
 
+    // ========== 2. KATMAN (DIŞ MAT) ELEMENTİ ==========
+    let mat2 = document.getElementById("olga_mat2");
+    if (!mat2 && STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
+      mat2 = document.createElement("div");
+      mat2.id = "olga_mat2";
+      mat2.className = "olga-mat2";
+      mat2.style.cssText = `
+        display:flex; align-items:center; justify-content:center;
+        box-sizing:border-box; position:relative; transition: all 0.3s ease;
+      `;
+      // mat2'yi mat'ın parent'ına, mat'ın yerine ekle
+      mat.parentNode.insertBefore(mat2, mat);
+      mat2.appendChild(mat);
+    }
+    if (mat2 && (!STATE.isDoubleMat || STATE.mat2TypePriceM2 <= 0)) {
+      // Çift paspartu kapalıysa mat2'yi kaldır
+      if (mat2.parentNode) {
+        mat2.parentNode.insertBefore(mat, mat2);
+        mat2.remove();
+      }
+      mat2 = null;
+    }
+
     if (!(STATE.artWMM > 0 && STATE.artHMM > 0) || boxW < 50 || boxH < 50) {
       frame.style.width = "160px";
       frame.style.height = "160px";
       frame.style.padding = "10px";
 
+      if (mat2) mat2.style.padding = "10px";
       mat.style.padding = "18px";
       mat.style.background = "#ffffff";
 
@@ -772,6 +1608,19 @@
     frame.style.width = `${frameWpx}px`;
     frame.style.height = `${frameHpx}px`;
 
+    // ========== 2. KATMAN PADDING (DIŞ) ==========
+    if (mat2 && STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
+      const p2Top = Math.max(0, (STATE.mat2Top || 0) * scale);
+      const p2Bottom = Math.max(0, (STATE.mat2Bottom || 0) * scale);
+      const p2Left = Math.max(0, (STATE.mat2Left || 0) * scale);
+      const p2Right = Math.max(0, (STATE.mat2Right || 0) * scale);
+
+      mat2.style.padding = `${p2Top}px ${p2Right}px ${p2Bottom}px ${p2Left}px`;
+      mat2.style.background = getMat2PreviewBackground();
+      mat2.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.08)";
+    }
+
+    // ========== 1. KATMAN PADDING (İÇ) ==========
     const pTop = Math.max(0, (STATE.matTop || 0) * scale);
     const pBottom = Math.max(0, (STATE.matBottom || 0) * scale);
     const pLeft = Math.max(0, (STATE.matLeft || 0) * scale);
@@ -789,7 +1638,12 @@
 
     if (STATE.matTypePriceM2 > 0) {
       mat.style.background = getMatPreviewBackground();
-      mat.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.10)";
+      // 45 derece açı efekti - iç kenarda beyaz şerit
+      if (STATE.mat45Degree) {
+        mat.style.boxShadow = "inset 0 0 0 2px #ffffff, inset 0 0 0 3px rgba(0,0,0,.15)";
+      } else {
+        mat.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.10)";
+      }
     } else {
       mat.style.background = "#ffffff";
       mat.style.boxShadow = "none";
@@ -808,9 +1662,18 @@
 
     if (label) label.textContent = `${STATE.totalWMM}×${STATE.totalHMM} mm`;
     if (note) {
-      const matTxt = STATE.matTypePriceM2 > 0
-        ? `Paspartu: ${STATE.matTypeLabel} (${STATE.matColorCode})`
-        : "Paspartu: Yok";
+      let matTxt = "";
+      if (STATE.matTypePriceM2 > 0) {
+        matTxt = `İç: ${STATE.matTypeLabel} (${STATE.matColorCode})`;
+        if (STATE.mat45Degree) matTxt += " • 45°";
+      } else {
+        matTxt = "Paspartu: Yok";
+      }
+
+      if (STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
+        matTxt += ` | Dış: ${STATE.mat2TypeLabel} (${STATE.mat2ColorCode})`;
+      }
+
       const glassTxt = `Cam: ${STATE.glassLabel || "Cam Yok"}`;
       note.textContent = `${matTxt} • ${glassTxt}`;
     }
@@ -827,10 +1690,27 @@
 
     if (!wEl || !hEl || !uEl || !qEl) return;
 
-    const w = parseFloat(wEl.value || 0);
-    const h = parseFloat(hEl.value || 0);
+    const w = safeParseFloat(wEl.value, 0);
+    const h = safeParseFloat(hEl.value, 0);
     const unit = uEl.value || "cm";
-    const qty = Math.max(1, parseInt(qEl.value || "1", 10));
+    const qty = Math.max(1, safeParseInt(qEl.value, 1));
+
+    // Validation with visual feedback
+    const wMM = getMM(w, unit);
+    const hMM = getMM(h, unit);
+
+    if (w > 0 && wMM < 15) {
+      showInputError(wEl, "Minimum 15mm gerekli");
+    }
+    if (h > 0 && hMM < 15) {
+      showInputError(hEl, "Minimum 15mm gerekli");
+    }
+    if (wMM > 2900) {
+      showInputError(wEl, "Maximum 2900mm");
+    }
+    if (hMM > 2900) {
+      showInputError(hEl, "Maximum 2900mm");
+    }
 
     const tolAdded = !(fittingEl?.checked);
     const tolMM = tolAdded ? TOL_MM : 0;
@@ -841,6 +1721,7 @@
     const cutWMM = artWMM + tolMM;
     const cutHMM = artHMM + tolMM;
 
+    // ========== 1. KATMAN (İÇ PASPARTU) ==========
     const matTypeEl = document.getElementById("olga_mat_type");
     const matTypePriceM2 = matTypeEl ? (parseFloat(matTypeEl.value || "0") || 0) : 0;
     const matTypeLabel = MAT_TYPES.find(x => x.value === matTypePriceM2)?.label || "Paspartu";
@@ -852,10 +1733,34 @@
     const matLeft = hasMat ? (parseFloat(document.getElementById("olga_mat_left")?.value || "0") || 0) : 0;
     const matRight = hasMat ? (parseFloat(document.getElementById("olga_mat_right")?.value || "0") || 0) : 0;
 
-    const totalWMM = artWMM + matLeft + matRight;
-    const totalHMM = artHMM + matTop + matBottom;
+    // 45 derece açı state
+    const degree45El = document.getElementById("olga_mat_45degree");
+    STATE.mat45Degree = degree45El ? degree45El.checked : true;
+
+    // ========== 2. KATMAN (DIŞ PASPARTU) ==========
+    const mat2TypeEl = document.getElementById("olga_mat2_type");
+    const mat2TypePriceM2 = (STATE.isDoubleMat && mat2TypeEl) ? (parseFloat(mat2TypeEl.value || "0") || 0) : 0;
+    const mat2TypeLabel = MAT_TYPES.find(x => x.value === mat2TypePriceM2)?.label || "Paspartu";
+
+    const hasMat2 = STATE.isDoubleMat && mat2TypePriceM2 > 0;
+
+    const mat2Top = hasMat2 ? (parseFloat(document.getElementById("olga_mat2_top")?.value || "0") || 0) : 0;
+    const mat2Bottom = hasMat2 ? (parseFloat(document.getElementById("olga_mat2_bottom")?.value || "0") || 0) : 0;
+    const mat2Left = hasMat2 ? (parseFloat(document.getElementById("olga_mat2_left")?.value || "0") || 0) : 0;
+    const mat2Right = hasMat2 ? (parseFloat(document.getElementById("olga_mat2_right")?.value || "0") || 0) : 0;
+
+    // Toplam ölçü: Sanat eseri + İç paspartu + Dış paspartu
+    const totalWMM = artWMM + matLeft + matRight + mat2Left + mat2Right;
+    const totalHMM = artHMM + matTop + matBottom + mat2Top + mat2Bottom;
+
+    // İç paspartu dahil ölçü (2. katman öncesi)
+    const innerMatWMM = artWMM + matLeft + matRight;
+    const innerMatHMM = artHMM + matTop + matBottom;
 
     const areaM2 = (totalWMM / 1000) * (totalHMM / 1000);
+
+    // İç paspartu alanı (1. katman)
+    const innerAreaM2 = (innerMatWMM / 1000) * (innerMatHMM / 1000);
 
     const perimeterM = (2 * (totalWMM + totalHMM)) / 1000;
     const totalMeter = perimeterM + FIRE_M;
@@ -863,16 +1768,32 @@
     const unitPrice = getUnitMeterPrice_Ignore290();
 
     const frameCostOne = (unitPrice > 0 && areaM2 > 0) ? (totalMeter * unitPrice) : 0;
-    const matCostOne = hasMat ? (areaM2 * matTypePriceM2) : 0;
+
+    // 1. katman maliyeti (iç paspartu alanı üzerinden)
+    const matCostOne = hasMat ? (innerAreaM2 * matTypePriceM2) : 0;
+
+    // 2. katman maliyeti (toplam alan - iç alan = dış paspartu alanı)
+    const mat2AreaM2 = areaM2 - innerAreaM2;
+    const mat2CostOne = hasMat2 ? (mat2AreaM2 * mat2TypePriceM2) : 0;
+
     const glassCostOne = areaM2 * (STATE.glassPriceM2 || 0);
 
-    const totalOne = frameCostOne + matCostOne + glassCostOne;
+    const totalOne = frameCostOne + matCostOne + mat2CostOne + glassCostOne;
     const total = totalOne * qty;
+
+    // 2. katman state güncelle
+    STATE.mat2TypePriceM2 = mat2TypePriceM2;
+    STATE.mat2TypeLabel = mat2TypeLabel;
+    STATE.mat2Top = mat2Top;
+    STATE.mat2Bottom = mat2Bottom;
+    STATE.mat2Left = mat2Left;
+    STATE.mat2Right = mat2Right;
+    STATE.mat2Cost = mat2CostOne * qty;
 
     STATE.unitPrice = unitPrice;
     STATE.totalPrice = total;
     STATE.frameCost = frameCostOne * qty;
-    STATE.matCost = matCostOne * qty;
+    STATE.matCost = (matCostOne + mat2CostOne) * qty; // Toplam paspartu maliyeti
     STATE.glassCost = glassCostOne * qty;
 
     STATE.artWMM = artWMM;
@@ -882,6 +1803,10 @@
 
     STATE.totalWMM = totalWMM;
     STATE.totalHMM = totalHMM;
+
+    // İç paspartu dahil ölçü (önizleme için)
+    STATE.innerMatWMM = innerMatWMM;
+    STATE.innerMatHMM = innerMatHMM;
 
     STATE.tolAdded = tolAdded;
     STATE.sku = getProductSku();
@@ -933,6 +1858,21 @@
   function sendWhatsAppOrder() {
     calculate();
 
+    // Paspartu bilgisi oluştur
+    let paspartuInfo = "";
+    if (STATE.matTypePriceM2 > 0) {
+      paspartuInfo = `İç Paspartu: ${STATE.matTypeLabel} (${STATE.matColorCode || "-"})`;
+      if (STATE.mat45Degree) paspartuInfo += " - 45° Açılı";
+    } else {
+      paspartuInfo = "Paspartu: Yok";
+    }
+
+    // Çift paspartu varsa ekle
+    let mat2Info = "";
+    if (STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
+      mat2Info = `\nDış Paspartu: ${STATE.mat2TypeLabel} (${STATE.mat2ColorCode || "-"})`;
+    }
+
     const lines = [
       "Merhaba Olga Çerçeve 👋",
       "Web siteniz üzerinden çerçeve hesabı yaptım:",
@@ -944,7 +1884,7 @@
       `Kesim: ${STATE.cutWMM || "-"} × ${STATE.cutHMM || "-"} mm`,
       `Çerçeve ölçüsü (paspartu dahil): ${STATE.totalWMM || "-"} × ${STATE.totalHMM || "-"} mm`,
       "",
-      `Paspartu: ${STATE.matTypePriceM2 > 0 ? `${STATE.matTypeLabel} (${STATE.matColorCode || "-"})` : "Yok"}`,
+      paspartuInfo + mat2Info,
       `Cam: ${STATE.glassLabel || "Cam Yok"}`,
       "",
       `Çerçeve: ${formatTR_TL(STATE.frameCost)}`,
@@ -1003,11 +1943,29 @@
   async function createPDF() {
     calculate();
 
+    // Find PDF button and show loading state
+    const pdfBtn = document.querySelector('button[onclick="createPDF()"]');
+    const originalText = pdfBtn?.textContent || "📄 PDF İndir";
+
+    if (pdfBtn) {
+      pdfBtn.disabled = true;
+      pdfBtn.innerHTML = `<span class="olga-spinner" style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:olga-spin 0.8s linear infinite;vertical-align:middle;margin-right:8px;"></span> PDF Hazırlanıyor...`;
+      setLoading(pdfBtn, true);
+    }
+
     let jsPDF;
     try {
       jsPDF = await ensureJsPDF();
-    } catch {
-      alert("PDF kütüphanesi yüklenemedi! (CDN engelli olabilir)");
+    } catch (error) {
+      console.error("jsPDF yükleme hatası:", error);
+      if (pdfBtn) {
+        pdfBtn.disabled = false;
+        pdfBtn.textContent = originalText;
+        setLoading(pdfBtn, false);
+      }
+      // Show user-friendly error
+      announceToSR("PDF oluşturulamadı");
+      alert("PDF kütüphanesi yüklenemedi! Lütfen internet bağlantınızı kontrol edin.");
       return;
     }
 
@@ -1040,10 +1998,21 @@
     pdf.text(fixText(`Cerceve Adedi     : ${STATE.qty}`), 15, y); y += 9;
     pdf.text(fixText(`2 mm Pay          : ${STATE.tolAdded ? "Eklendi" : "Eklenmedi"}`), 15, y); y += 10;
 
-    pdf.text(fixText(`Paspartu          : ${STATE.matTypePriceM2 > 0 ? STATE.matTypeLabel : "Yok"}`), 15, y); y += 9;
+    // İç Paspartu
+    const paspartuLabel = STATE.isDoubleMat ? "Ic Paspartu" : "Paspartu";
+    pdf.text(fixText(`${paspartuLabel}          : ${STATE.matTypePriceM2 > 0 ? STATE.matTypeLabel : "Yok"}`), 15, y); y += 9;
     if (STATE.matTypePriceM2 > 0) {
-      pdf.text(fixText(`Paspartu Kodu     : ${STATE.matColorCode || "-"}`), 15, y); y += 9;
+      let kodLine = `${paspartuLabel} Kodu     : ${STATE.matColorCode || "-"}`;
+      if (STATE.mat45Degree) kodLine += " (45 derece acili)";
+      pdf.text(fixText(kodLine), 15, y); y += 9;
       pdf.text(fixText(`Kenarlar (mm)     : Sol ${STATE.matLeft}, Sag ${STATE.matRight}, Ust ${STATE.matTop}, Alt ${STATE.matBottom}`), 15, y); y += 10;
+    }
+
+    // Dış Paspartu (Çift paspartu varsa)
+    if (STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
+      pdf.text(fixText(`Dis Paspartu      : ${STATE.mat2TypeLabel}`), 15, y); y += 9;
+      pdf.text(fixText(`Dis Paspartu Kodu : ${STATE.mat2ColorCode || "-"}`), 15, y); y += 9;
+      pdf.text(fixText(`Dis Kenarlar (mm) : Sol ${STATE.mat2Left}, Sag ${STATE.mat2Right}, Ust ${STATE.mat2Top}, Alt ${STATE.mat2Bottom}`), 15, y); y += 10;
     }
 
     pdf.text(fixText(`Cam               : ${STATE.glassLabel || "Cam Yok"}`), 15, y); y += 12;
@@ -1082,6 +2051,15 @@
     }
 
     pdf.save(`urun-${sku}.pdf`);
+
+    // Reset button state
+    if (pdfBtn) {
+      pdfBtn.disabled = false;
+      pdfBtn.textContent = originalText;
+      setLoading(pdfBtn, false);
+    }
+
+    announceToSR("PDF başarıyla indirildi");
   }
   window.createPDF = createPDF;
 
@@ -1103,16 +2081,86 @@
     ensureExtraUI();
     forceSquareCornersHard();
     bindExtraUIEvents();
+    injectAccessibilityEnhancements();
 
     ["product_width", "product_height", "product_unit", "product_quantity", "product_fitting"].forEach((id) => {
       const el = document.getElementById(id);
       if (!el) return;
-      el.addEventListener("input", calculate);
-      el.addEventListener("change", calculate);
+
+      // Add ARIA labels
+      if (id === "product_width") el.setAttribute("aria-label", "Genişlik değeri");
+      if (id === "product_height") el.setAttribute("aria-label", "Yükseklik değeri");
+      if (id === "product_unit") el.setAttribute("aria-label", "Ölçü birimi");
+      if (id === "product_quantity") el.setAttribute("aria-label", "Çerçeve adedi");
+      if (id === "product_fitting") el.setAttribute("aria-label", "Montaj toleransı eklenmesin");
+
+      // Use debounced calculate for input, immediate for change
+      el.addEventListener("input", debouncedCalculate);
+      el.addEventListener("change", () => {
+        calculate();
+        // Show price update animation
+        showPriceUpdate(document.getElementById("product_totalPrice"));
+      });
+    });
+
+    // Add ripple effect to all buttons
+    document.querySelectorAll(".cc-panel button, .preset-btn").forEach(btn => {
+      if (btn.__rippleBound) return;
+      btn.__rippleBound = true;
+      btn.addEventListener("click", (e) => createRipple(e, btn));
     });
 
     bindPresetClicks();
     calculate();
+
+    // Announce ready state
+    announceToSR("Çerçeve hesaplayıcı hazır");
+  }
+
+  // Accessibility enhancements
+  function injectAccessibilityEnhancements() {
+    // Add skip link for keyboard users
+    if (!document.getElementById("olga-skip-link")) {
+      const skipLink = document.createElement("a");
+      skipLink.id = "olga-skip-link";
+      skipLink.href = "#product_width";
+      skipLink.textContent = "Hesaplayıcıya atla";
+      skipLink.style.cssText = `
+        position: absolute;
+        top: -40px;
+        left: 0;
+        background: rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b});
+        color: white;
+        padding: 8px 16px;
+        z-index: 10000;
+        text-decoration: none;
+        border-radius: 0 0 8px 0;
+        transition: top 0.3s ease;
+      `;
+      skipLink.addEventListener("focus", () => skipLink.style.top = "0");
+      skipLink.addEventListener("blur", () => skipLink.style.top = "-40px");
+
+      const wrapper = document.querySelector(".cc-wrapper");
+      if (wrapper) wrapper.prepend(skipLink);
+    }
+
+    // Add landmark roles
+    const wrapper = document.querySelector(".cc-wrapper");
+    if (wrapper) wrapper.setAttribute("role", "application");
+
+    const summaryBox = document.querySelector(".cc-summary-box");
+    if (summaryBox) {
+      summaryBox.setAttribute("role", "region");
+      summaryBox.setAttribute("aria-label", "Hesaplama özeti");
+      summaryBox.setAttribute("aria-live", "polite");
+    }
+
+    // Make info icons accessible
+    document.querySelectorAll(".cc-info-icon").forEach(icon => {
+      icon.setAttribute("role", "button");
+      icon.setAttribute("tabindex", "0");
+      icon.setAttribute("aria-label", "Bilgi: " + (icon.dataset.tooltip || ""));
+    });
   }
 
   function waitForElementsAndInit() {
