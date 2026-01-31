@@ -1642,15 +1642,15 @@
     const artWpx = Math.max(22, STATE.artWMM * scale);
     const artHpx = Math.max(22, STATE.artHMM * scale);
 
-    // 45 derece açı efekti - beyaz şerit (her paspartunun iç kenarında)
+    // 45 derece kesim efekti (her paspartunun iç kenarında)
     if (mat2 && STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
-      // Çift paspartu: Her iki katmanda da beyazlık var
-      // 1. Dış paspartunun iç kenarında (mat'ın etrafında)
+      // Çift paspartu: Her iki katmanda da 45° kesim var
+      // 1. Dış paspartunun 45° kesimi (iç paspartu etrafında)
       mat.style.boxShadow = "0 0 0 2px #ffffff, 0 0 0 3px rgba(0,0,0,.12), inset 0 0 0 1px rgba(0,0,0,.08)";
-      // 2. İç paspartunun iç kenarında (eserin etrafında)
+      // 2. İç paspartunun 45° kesimi (eser etrafında)
       art.style.boxShadow = "0 0 0 2px #ffffff, 0 0 0 3px rgba(0,0,0,.12), inset 0 0 0 1px rgba(0,0,0,.08)";
     } else if (STATE.matTypePriceM2 > 0) {
-      // Tek paspartu: Beyazlık eser etrafında
+      // Tek paspartu: 45° kesim eser etrafında
       mat.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.08)";
       art.style.boxShadow = "0 0 0 2px #ffffff, 0 0 0 3px rgba(0,0,0,.12), inset 0 0 0 1px rgba(0,0,0,.08)";
     } else {
