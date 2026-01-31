@@ -751,7 +751,7 @@
         justify-content:center;
         box-sizing:border-box;
         box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: width 0.35s ease-out, height 0.35s ease-out, padding 0.35s ease-out;
         position: relative;
       }
 
@@ -762,6 +762,7 @@
         align-items:center;
         justify-content:center;
         box-sizing:border-box;
+        transition: padding 0.3s ease-out, background 0.25s ease;
       }
 
       /* 45° Bevel - Beyaz kesim çizgisi */
@@ -771,6 +772,7 @@
         align-items:center;
         justify-content:center;
         box-sizing:border-box;
+        transition: padding 0.3s ease-out;
       }
 
       /* İç Paspartu */
@@ -780,6 +782,7 @@
         align-items:center;
         justify-content:center;
         box-sizing:border-box;
+        transition: padding 0.3s ease-out, background 0.25s ease, opacity 0.25s ease;
       }
 
       /* Eser Alanı */
@@ -789,6 +792,7 @@
         align-items:center;
         justify-content:center;
         box-sizing:border-box;
+        transition: width 0.3s ease-out, height 0.3s ease-out;
       }
 
       .olga-glass{
