@@ -100,15 +100,11 @@
 
     // Çift Paspartu (2. Katman - Dış Paspartu)
     isDoubleMat: false,
-    mountingWidth: 5, // Alt montaj genişliği (mm)
+    mountingWidth: 5, // Alt montaj genişliği (mm) - tüm kenarlara uygulanır
     mat2TypePriceM2: 0,
     mat2TypeLabel: "Paspartu Olmasın",
     mat2ColorCode: "-",
     mat2ColorHex: "#ffffff",
-    mat2Top: 0,
-    mat2Bottom: 0,
-    mat2Left: 0,
-    mat2Right: 0,
     mat2Cost: 0,
 
     glassId: "none",
@@ -989,25 +985,17 @@
         <div class="olga-mat-layer" id="olga_mat_layer2" style="display:none; margin-top:14px; padding-top:14px; border-top:2px dashed #e7e1da;">
           <div class="olga-title" style="font-size:13px;">Dış Paspartu (2. Katman)</div>
 
-          <!-- Alt Montaj Genişliği -->
-          <div class="olga-mounting-wrap" style="margin-bottom:12px; padding:10px; background:linear-gradient(135deg,#f8f6f4,#f0ebe6); border-radius:10px; border:1px solid #e7e1da;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <label style="font-size:13px; font-weight:600; color:#2b241b; white-space:nowrap;">Alt Montaj Genişliği:</label>
-              <input type="number" id="olga_mounting_width" value="5" min="0" max="50" style="width:70px; padding:8px 10px; border:1px solid #d8cfc6; border-radius:8px; font-size:14px; font-weight:600;">
-              <span style="font-size:12px; color:#6b6259;">mm</span>
-              <span class="cc-info-icon" data-tooltip="İç ve dış paspartu arasındaki görünür mesafe. Standart 5mm önerilir." style="margin-left:auto;">i</span>
-            </div>
-          </div>
-
           <select id="olga_mat2_type" class="olga-select">${matOptions}</select>
 
           <div id="olga_mat2_controls" style="display:none; margin-top:10px">
-            <div class="olga-title" style="margin-top:8px">Dış Paspartu Kenarları (mm)</div>
-            <div class="olga-row">
-              <div class="olga-col"><label>Üst</label><input type="number" id="olga_mat2_top" value="30" min="0"></div>
-              <div class="olga-col"><label>Alt</label><input type="number" id="olga_mat2_bottom" value="30" min="0"></div>
-              <div class="olga-col"><label>Sol</label><input type="number" id="olga_mat2_left" value="30" min="0"></div>
-              <div class="olga-col"><label>Sağ</label><input type="number" id="olga_mat2_right" value="30" min="0"></div>
+            <!-- Alt Montaj Genişliği -->
+            <div class="olga-mounting-wrap" style="margin-bottom:12px; padding:12px; background:linear-gradient(135deg,#f8f6f4,#f0ebe6); border-radius:10px; border:1px solid #e7e1da;">
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <label style="font-size:13px; font-weight:600; color:#2b241b; white-space:nowrap;">Alt Montaj Genişliği:</label>
+                <input type="number" id="olga_mounting_width" value="5" min="1" max="30" style="width:65px; padding:8px 10px; border:1px solid #d8cfc6; border-radius:8px; font-size:14px; font-weight:600; text-align:center;">
+                <span style="font-size:12px; color:#6b6259;">mm</span>
+                <span class="cc-info-icon" data-tooltip="İç paspartunun etrafında görünecek dış paspartu genişliği." style="margin-left:auto;">i</span>
+              </div>
             </div>
 
             <div class="olga-title" style="margin-top:12px">Dış Paspartu Rengi</div>
@@ -1235,26 +1223,11 @@
         }
 
         const def = v > 0 ? 30 : 0;
-        ["olga_mat2_top","olga_mat2_bottom","olga_mat2_left","olga_mat2_right"].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.value = def;
-        });
-
         if (v > 0) renderMat2Palette(v);
         announceToSR(`Dış paspartu: ${STATE.mat2TypeLabel} seçildi`);
         calculate();
       });
     }
-
-    // 2. katman kenar input'ları
-    ["olga_mat2_top","olga_mat2_bottom","olga_mat2_left","olga_mat2_right"].forEach(id => {
-      const el = document.getElementById(id);
-      if (!el || el.__bound) return;
-      el.__bound = true;
-      el.setAttribute("aria-label", id.replace("olga_mat2_", "Dış paspartu ") + " kenarı (mm)");
-      el.addEventListener("input", debouncedCalculate);
-      el.addEventListener("change", calculate);
-    });
 
     // 2. katman palette event
     if (palette2Wrap && !palette2Wrap.__bound) {
@@ -1480,13 +1453,24 @@
       return hex;
     }
 
-    // ✅ Kadife dokusu - gerçekçi kumaş görünümü
+    // ✅ Kadife dokusu - premium kumaş görünümü (renk korunur)
     if (type === 3000) {
       return `
-        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"),
-        radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.12), transparent 50%),
-        radial-gradient(ellipse at 70% 80%, rgba(0,0,0,.15), transparent 50%),
-        linear-gradient(180deg, rgba(255,255,255,.05) 0%, transparent 50%, rgba(0,0,0,.08) 100%),
+        repeating-linear-gradient(
+          90deg,
+          rgba(0,0,0,.03) 0px,
+          rgba(255,255,255,.02) 1px,
+          rgba(0,0,0,.02) 2px,
+          transparent 3px
+        ),
+        repeating-linear-gradient(
+          0deg,
+          rgba(0,0,0,.02) 0px,
+          rgba(255,255,255,.015) 1px,
+          transparent 2px
+        ),
+        radial-gradient(ellipse at 25% 25%, rgba(255,255,255,.08), transparent 60%),
+        radial-gradient(ellipse at 75% 75%, rgba(0,0,0,.1), transparent 60%),
         ${hex}
       `;
     }
@@ -1513,12 +1497,12 @@
       return hex;
     }
 
-    // Kadife dokusu - gerçekçi kumaş görünümü
+    // Kadife dokusu - premium kumaş görünümü (renk korunur)
     if (type === 3000) {
-      return `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"),
-              radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.12), transparent 50%),
-              radial-gradient(ellipse at 70% 80%, rgba(0,0,0,.15), transparent 50%),
-              linear-gradient(180deg, rgba(255,255,255,.05) 0%, transparent 50%, rgba(0,0,0,.08) 100%),
+      return `repeating-linear-gradient(90deg, rgba(0,0,0,.03) 0px, rgba(255,255,255,.02) 1px, rgba(0,0,0,.02) 2px, transparent 3px),
+              repeating-linear-gradient(0deg, rgba(0,0,0,.02) 0px, rgba(255,255,255,.015) 1px, transparent 2px),
+              radial-gradient(ellipse at 25% 25%, rgba(255,255,255,.08), transparent 60%),
+              radial-gradient(ellipse at 75% 75%, rgba(0,0,0,.1), transparent 60%),
               ${hex}`;
     }
 
@@ -1612,14 +1596,12 @@
     frame.style.width = `${frameWpx}px`;
     frame.style.height = `${frameHpx}px`;
 
-    // ========== 2. KATMAN PADDING (DIŞ) ==========
+    // ========== 2. KATMAN PADDING (DIŞ - Alt Montaj Genişliği) ==========
     if (mat2 && STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
-      const p2Top = Math.max(0, (STATE.mat2Top || 0) * scale);
-      const p2Bottom = Math.max(0, (STATE.mat2Bottom || 0) * scale);
-      const p2Left = Math.max(0, (STATE.mat2Left || 0) * scale);
-      const p2Right = Math.max(0, (STATE.mat2Right || 0) * scale);
+      // Mounting width tüm kenarlara eşit uygulanır
+      const mountingPx = Math.max(2, (STATE.mountingWidth || 5) * scale);
 
-      mat2.style.padding = `${p2Top}px ${p2Right}px ${p2Bottom}px ${p2Left}px`;
+      mat2.style.padding = `${mountingPx}px`;
       mat2.style.background = getMat2PreviewBackground();
       mat2.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.08)";
     }
@@ -1741,24 +1723,20 @@
     const matRight = hasMat ? (parseFloat(document.getElementById("olga_mat_right")?.value || "0") || 0) : 0;
 
     // ========== 2. KATMAN (DIŞ PASPARTU) ==========
-    // Alt montaj genişliği
-    const mountingWidthEl = document.getElementById("olga_mounting_width");
-    const mountingWidth = STATE.isDoubleMat ? (parseFloat(mountingWidthEl?.value || "5") || 5) : 0;
-    STATE.mountingWidth = mountingWidth;
     const mat2TypeEl = document.getElementById("olga_mat2_type");
     const mat2TypePriceM2 = (STATE.isDoubleMat && mat2TypeEl) ? (parseFloat(mat2TypeEl.value || "0") || 0) : 0;
     const mat2TypeLabel = MAT_TYPES.find(x => x.value === mat2TypePriceM2)?.label || "Paspartu";
 
     const hasMat2 = STATE.isDoubleMat && mat2TypePriceM2 > 0;
 
-    const mat2Top = hasMat2 ? (parseFloat(document.getElementById("olga_mat2_top")?.value || "0") || 0) : 0;
-    const mat2Bottom = hasMat2 ? (parseFloat(document.getElementById("olga_mat2_bottom")?.value || "0") || 0) : 0;
-    const mat2Left = hasMat2 ? (parseFloat(document.getElementById("olga_mat2_left")?.value || "0") || 0) : 0;
-    const mat2Right = hasMat2 ? (parseFloat(document.getElementById("olga_mat2_right")?.value || "0") || 0) : 0;
+    // Alt montaj genişliği (dış paspartunun tüm kenarlarına uygulanır)
+    const mountingWidthEl = document.getElementById("olga_mounting_width");
+    const mountingWidth = hasMat2 ? (parseFloat(mountingWidthEl?.value || "5") || 5) : 0;
+    STATE.mountingWidth = mountingWidth;
 
-    // Toplam ölçü: Sanat eseri + İç paspartu + Dış paspartu
-    const totalWMM = artWMM + matLeft + matRight + mat2Left + mat2Right;
-    const totalHMM = artHMM + matTop + matBottom + mat2Top + mat2Bottom;
+    // Toplam ölçü: Sanat eseri + İç paspartu + Dış paspartu (mounting width * 2 her yön için)
+    const totalWMM = artWMM + matLeft + matRight + (hasMat2 ? mountingWidth * 2 : 0);
+    const totalHMM = artHMM + matTop + matBottom + (hasMat2 ? mountingWidth * 2 : 0);
 
     // İç paspartu dahil ölçü (2. katman öncesi)
     const innerMatWMM = artWMM + matLeft + matRight;
@@ -1791,10 +1769,6 @@
     // 2. katman state güncelle
     STATE.mat2TypePriceM2 = mat2TypePriceM2;
     STATE.mat2TypeLabel = mat2TypeLabel;
-    STATE.mat2Top = mat2Top;
-    STATE.mat2Bottom = mat2Bottom;
-    STATE.mat2Left = mat2Left;
-    STATE.mat2Right = mat2Right;
     STATE.mat2Cost = mat2CostOne * qty;
 
     STATE.unitPrice = unitPrice;
@@ -2014,8 +1988,7 @@
         pdf.text(fixText(`Ic Paspartu       : ${STATE.matTypeLabel} (${STATE.matColorCode || "-"})`), 15, y); y += 9;
         pdf.text(fixText(`Ic Kenarlar (mm)  : Sol ${STATE.matLeft}, Sag ${STATE.matRight}, Ust ${STATE.matTop}, Alt ${STATE.matBottom}`), 15, y); y += 9;
         pdf.text(fixText(`Dis Paspartu      : ${STATE.mat2TypeLabel} (${STATE.mat2ColorCode || "-"})`), 15, y); y += 9;
-        pdf.text(fixText(`Dis Kenarlar (mm) : Sol ${STATE.mat2Left}, Sag ${STATE.mat2Right}, Ust ${STATE.mat2Top}, Alt ${STATE.mat2Bottom}`), 15, y); y += 9;
-        pdf.text(fixText(`Alt Montaj        : ${STATE.mountingWidth || 5} mm`), 15, y); y += 10;
+        pdf.text(fixText(`Alt Montaj Gen.   : ${STATE.mountingWidth || 5} mm`), 15, y); y += 10;
       } else {
         // Tek Paspartu
         pdf.text(fixText(`Paspartu          : ${STATE.matTypeLabel} (${STATE.matColorCode || "-"})`), 15, y); y += 9;
