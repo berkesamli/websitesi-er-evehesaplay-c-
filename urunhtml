@@ -1,0 +1,290 @@
+<!-- === OLGA ÇERÇEVE HESAPLAYICI BAŞLANGIÇ === -->
+<meta charset="UTF-8">
+<title>Çerçeve Hesaplama ve PDF</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --tooltip-max-width: 320px;
+  }
+
+  .cc-wrapper {
+    font-family: sans-serif;
+    background: transparent;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    width: 100%;
+    max-width: 965px;
+    box-sizing: border-box;
+  }
+
+  .cc-box {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    width: 100%;
+    border: 1px solid #e0d6cc;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  .cc-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .cc-panel {
+    flex: 1 1 320px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 16px;
+    min-width: 0;
+  }
+
+  .cc-panel-header {
+    background: #8c5919;
+    color: #fff;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 4px 4px 0 0;
+  }
+
+  .cc-input-group {
+    background: #f4f4f4;
+    border-radius: 4px;
+    padding: 10px;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .cc-panel label {
+    font-weight: bold;
+    display: block;
+    margin-top: 12px;
+  }
+
+  .cc-panel input,
+  .cc-panel select {
+    padding: 8px;
+    font-size: 14px;
+    background: #f9f9f9;
+  }
+
+  .cc-panel input[type="number"] {
+    width: 100%;
+  }
+
+  .cc-summary-box {
+    background: #eee;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  .cc-info-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background: red;
+    color: #fff;
+    text-align: center;
+    line-height: 16px;
+    font-size: 11px;
+    border-radius: 50%;
+    margin-left: 4px;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .cc-info-icon:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    background: #333;
+    color: #fff;
+    font-size: 12px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: normal;
+    max-width: var(--tooltip-max-width);
+    width: max-content;
+    z-index: 9999;
+  }
+
+  .cc-panel button {
+    margin-top: 12px;
+    background: #8c5919;
+    color: #fff;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .cc-info {
+    font-size: 13px;
+    color: #555;
+    margin-top: 20px;
+    line-height: 1.5;
+  }
+
+  .cc-checkbox-label {
+    display: flex;
+    align-items: center;
+    margin-top: 12px;
+    gap: 8px;
+    font-weight: normal;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+
+/* === Ortak ölçü kutusu görünümü (sorunsuz, responsive, 3 sütun sabit) === */
+.preset-size-wrapper {
+  margin-top: 10px;
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.preset-size-toggle {
+  background: #8c5919;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  display: inline-block;
+}
+
+.preset-size-toggle:hover {
+  background: #a25c1d;
+}
+
+.preset-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f4f4f4;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.preset-btn {
+  flex: 0 0 calc(33.333% - 10px);
+  max-width: calc(33.333% - 10px);
+  min-width: 110px;
+  background: #f4f4f4 !important;   /* 🔥 zorla açık gri yap */
+  color: #333 !important;
+  border: 1px solid #ccc !important;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  text-align: center;
+  transition: background 0.2s ease, color 0.2s ease;
+  box-sizing: border-box;
+}
+
+
+.preset-btn:hover,
+.preset-btn:focus {
+  background-color: #8c5919 !important;
+  color: white !important;
+}
+
+@media (max-width: 768px) {
+  .preset-btn {
+    flex: 0 0 calc(33.333% - 10px);
+    max-width: calc(33.333% - 10px);
+  }
+}
+
+
+</style>
+
+
+<div class="cc-wrapper">
+  <div class="cc-box">
+    <div class="cc-container">
+      <div class="cc-panel">
+        <div class="cc-panel-header">Kesim Servisi</div>
+        <label>Sanat eseri ölçüsü (en × boy)
+          <span class="cc-info-icon" data-tooltip="Çerçevenin iç ölçüsüdür. Cam ile aynıdır. Min 150 mm, max 2900 mm">i</span>
+        </label>
+        <div class="cc-input-group">
+          <input type="number" id="product_width" placeholder="Genişlik">
+          <input type="number" id="product_height" placeholder="Yükseklik">
+          <select id="product_unit">
+            <option value="cm">cm</option>
+            <option value="mm">mm</option>
+          </select>
+        </div>
+<!-- === ORTAK ÖLÇÜ KUTUSU BAŞLANGIÇ === -->
+<div class="preset-size-wrapper">
+  <button class="preset-size-toggle" onclick="togglePresets()">Yaygın boyutları göster</button>
+  <div id="presetSizes" style="display:none;" class="preset-buttons">
+    <button class="preset-btn" data-size="841x1189">A0</button>
+    <button class="preset-btn" data-size="594x841">A1</button>
+    <button class="preset-btn" data-size="420x594">A2</button>
+    <button class="preset-btn" data-size="297x420">A3</button>
+    <button class="preset-btn" data-size="210x297">A4</button>
+    <button class="preset-btn" data-size="150x210">15×21 cm</button>
+    <button class="preset-btn" data-size="300x400">30×40 cm</button>
+    <button class="preset-btn" data-size="500x700">50×70 cm</button>
+    <button class="preset-btn" data-size="500x500">50×50 cm</button>
+    <button class="preset-btn" data-size="400x500">40×50 cm</button>
+    <button class="preset-btn" data-size="800x800">80×80 cm</button>
+    <button class="preset-btn" data-size="660x480">1000'lik Puzzle</button>
+    <button class="preset-btn" data-size="850x600">1500'lük Puzzle</button>
+    <button class="preset-btn" data-size="960x660">2000'lik Puzzle</button>
+    <button class="preset-btn" data-size="1200x850">3000'lük Puzzle</button>
+  </div>
+</div>
+<!-- === ORTAK ÖLÇÜ KUTUSU BİTİŞ === -->
+
+        <label>Çerçeve Adedi</label>
+        <div class="cc-input-group">
+          <input type="number" id="product_quantity" value="1" min="1">
+        </div>
+        <div class="cc-input-group cc-checkbox-label">
+          <input type="checkbox" id="product_fitting">
+          <span>2 mm montaj toleransı eklemeyin <span class="cc-info-icon" data-tooltip="Varsayılan olarak 2 mm eklenir. Ara parça olarak kullanılmayacaksa kaldırmayın.">i</span></span>
+        </div>
+        <div class="text-primary" style="display:none;">₺123,45</div>
+        <div id="product_sku" style="display:none;"></div>
+      </div>
+      <div class="cc-panel">
+        <div class="cc-panel-header">Özet</div>
+        <div class="cc-summary-box">
+          <div>Sanat Eseri Boyutu: <strong id="product_frameSize">-</strong></div>
+          <div>Çerçeve Adedi: <strong id="product_quantitySummary">-</strong></div>
+          <div>2 mm Pay: <strong id="product_toleranceText">-</strong></div>
+          <div>Toplam Fiyat: <strong id="product_totalPrice">-</strong></div>
+        </div>
+        <button onclick="createPDF()">📄 PDF İndir</button>
+      </div>
+    </div>
+    <div class="cc-info">
+      <p><strong>Bilgilendirme:</strong></p>
+      <p>Bu araç, yukarıda görseli bulunan çerçeve modeli için, kullanıcı tarafından girilen sanat eseri ölçülerine göre çerçeve fiyatı hesaplamak ve tahmini bir maliyet sunmak amacıyla tasarlanmıştır. Ölçüler milimetre düzeyinde hassasiyetle değerlendirilir. 2 mm montaj toleransı, çerçevenin daha sağlıklı ve güvenli yerleştirilmesini sağlamak için varsayılan olarak eklenir; dilerseniz bu seçeneği kaldırabilirsiniz.</p>
+    </div>
+  </div>
+</div>
+<!-- === OLGA ÇERÇEVE HESAPLAYICI BİTİŞ === -->
