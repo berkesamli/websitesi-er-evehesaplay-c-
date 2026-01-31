@@ -1642,11 +1642,13 @@
     const artWpx = Math.max(22, STATE.artWMM * scale);
     const artHpx = Math.max(22, STATE.artHMM * scale);
 
-    // 45 derece açı efekti - beyaz şerit
+    // 45 derece açı efekti - beyaz şerit (her paspartunun iç kenarında)
     if (mat2 && STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
-      // Çift paspartu: Beyazlık dış paspartunun iç kenarında (mat ile mat2 arasında)
-      mat.style.boxShadow = "0 0 0 2px #ffffff, 0 0 0 3px rgba(0,0,0,.15), inset 0 0 0 1px rgba(0,0,0,.08)";
-      art.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,0.1)";
+      // Çift paspartu: Her iki katmanda da beyazlık var
+      // 1. Dış paspartunun iç kenarında (mat'ın etrafında)
+      mat.style.boxShadow = "0 0 0 2px #ffffff, 0 0 0 3px rgba(0,0,0,.12), inset 0 0 0 1px rgba(0,0,0,.08)";
+      // 2. İç paspartunun iç kenarında (eserin etrafında)
+      art.style.boxShadow = "0 0 0 2px #ffffff, 0 0 0 3px rgba(0,0,0,.12), inset 0 0 0 1px rgba(0,0,0,.08)";
     } else if (STATE.matTypePriceM2 > 0) {
       // Tek paspartu: Beyazlık eser etrafında
       mat.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.08)";
