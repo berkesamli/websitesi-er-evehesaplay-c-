@@ -879,17 +879,26 @@
       .olga-frame-wrapper.has-real-frame .olga-frame {
         background: transparent !important;
         box-shadow: none !important;
+        padding: 0 !important;
       }
 
       /* Gerçek görsel varken bevel şeffaf olsun */
       .olga-frame-wrapper.has-real-frame .olga-bevel-outer,
       .olga-frame-wrapper.has-real-frame .olga-bevel-inner {
         background: transparent !important;
+        padding: 0 !important;
       }
 
-      /* Paspartuyu çerçeve altına uzat - boşluğu kapat */
+      /* Paspartuyu tüm alanı dolduracak şekilde genişlet */
       .olga-frame-wrapper.has-real-frame .olga-mat-outer {
-        margin: -3px !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
       }
 
 
