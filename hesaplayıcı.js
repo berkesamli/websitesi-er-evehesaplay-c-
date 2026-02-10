@@ -69,6 +69,30 @@
     ]
   };
 
+  // ========== ÇERÇEVE GÖRSELLERİ (SKU -> URL) ==========
+  const FRAME_IMAGES = {
+    "GD154-4313-BA": "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp",
+    // Yeni çerçeveler buraya eklenecek:
+    // "SKU-KODU": "https://cdn.../gorsel.png",
+  };
+
+  // Çerçeve görselini SKU'dan al
+  function getFrameImageUrl() {
+    const sku = getProductSku();
+    if (sku && FRAME_IMAGES[sku]) {
+      return FRAME_IMAGES[sku];
+    }
+    // SKU'nun farklı varyasyonlarını dene (tire, boşluk, büyük/küçük harf)
+    const skuNormalized = sku.toUpperCase().replace(/[\s-_]/g, '');
+    for (const key in FRAME_IMAGES) {
+      const keyNormalized = key.toUpperCase().replace(/[\s-_]/g, '');
+      if (keyNormalized === skuNormalized) {
+        return FRAME_IMAGES[key];
+      }
+    }
+    return null;
+  }
+
   const STATE = {
     unitPrice: 0,
     totalPrice: 0,
@@ -744,6 +768,27 @@
       }
 
       /* ========== FRAME PREVIEW ========== */
+      .olga-frame-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Gerçek çerçeve görseli (border-image) */
+      .olga-frame-image {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border-style: solid;
+        border-width: 0;
+        box-sizing: border-box;
+        z-index: 5;
+        pointer-events: none;
+        transition: border-width 0.35s ease-out, width 0.35s ease-out, height 0.35s ease-out;
+      }
+
       .olga-frame{
         background: #2d2d2d;
         display:flex;
@@ -753,6 +798,12 @@
         box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         transition: width 0.35s ease-out, height 0.35s ease-out, padding 0.35s ease-out;
         position: relative;
+      }
+
+      /* Gerçek görsel varken fallback çerçeveyi gizle */
+      .olga-frame-wrapper.has-real-frame .olga-frame {
+        background: transparent !important;
+        box-shadow: none !important;
       }
 
       /* Dış Paspartu */
@@ -1558,8 +1609,14 @@
     const label = document.getElementById("olga_preview_label");
     const note = document.getElementById("olga_preview_note");
     const box = document.querySelector("#olga_preview_card .olga-preview-box");
+    const frameWrapper = document.getElementById("olga_frame_wrapper");
+    const frameImage = document.getElementById("olga_frame_image");
 
     if (!frame || !matOuter || !bevelOuter || !box) return;
+
+    // Gerçek çerçeve görseli kontrolü
+    const realFrameUrl = getFrameImageUrl();
+    const hasRealFrame = !!realFrameUrl;
 
     const boxW = box.clientWidth;
     const boxH = box.clientHeight;
@@ -1584,6 +1641,22 @@
       frame.style.width = "160px";
       frame.style.height = "160px";
       frame.style.padding = "10px";
+
+      // Gerçek çerçeve görseli (varsayılan durumda)
+      if (frameWrapper && frameImage) {
+        if (hasRealFrame) {
+          frameWrapper.classList.add("has-real-frame");
+          frameImage.style.display = "block";
+          frameImage.style.width = "160px";
+          frameImage.style.height = "160px";
+          frameImage.style.borderWidth = "10px";
+          frameImage.style.borderImage = `url('${realFrameUrl}') 30 stretch`;
+          frameImage.style.boxShadow = "0 8px 32px rgba(0,0,0,0.3)";
+        } else {
+          frameWrapper.classList.remove("has-real-frame");
+          frameImage.style.display = "none";
+        }
+      }
 
       matOuter.style.padding = "15px";
       matOuter.style.background = "#ffffff";
@@ -1623,6 +1696,22 @@
 
     frame.style.width = `${contentW + frameBorderPx * 2}px`;
     frame.style.height = `${contentH + frameBorderPx * 2}px`;
+
+    // ========== GERÇEK ÇERÇEVE GÖRSELİ ==========
+    if (frameWrapper && frameImage) {
+      if (hasRealFrame) {
+        frameWrapper.classList.add("has-real-frame");
+        frameImage.style.display = "block";
+        frameImage.style.width = `${contentW + frameBorderPx * 2}px`;
+        frameImage.style.height = `${contentH + frameBorderPx * 2}px`;
+        frameImage.style.borderWidth = `${frameBorderPx}px`;
+        frameImage.style.borderImage = `url('${realFrameUrl}') ${Math.round(frameBorderPx * 3)} stretch`;
+        frameImage.style.boxShadow = "0 8px 32px rgba(0,0,0,0.3)";
+      } else {
+        frameWrapper.classList.remove("has-real-frame");
+        frameImage.style.display = "none";
+      }
+    }
 
     // Paspartu kenar ölçüleri (px) - minimum 8px görünür olsun
     const minMatPx = 8; // Minimum paspartu kalınlığı (px)
