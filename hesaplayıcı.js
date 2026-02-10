@@ -805,14 +805,14 @@
       .olga-frame-wrapper.has-real-frame .olga-frame {
         background: transparent !important;
         box-shadow: none !important;
-        padding: 0 !important;
+        /* padding korunuyor - paspartu hizalaması için gerekli */
       }
 
-      /* Gerçek görsel varken bevel'i gizle (çerçeve görseli kendi kesim detayını içeriyor) */
+      /* Gerçek görsel varken bevel şeffaf olsun (yapı korunuyor) */
       .olga-frame-wrapper.has-real-frame .olga-bevel-outer,
       .olga-frame-wrapper.has-real-frame .olga-bevel-inner {
-        padding: 0 !important;
         background: transparent !important;
+        /* padding korunuyor - hizalama için gerekli */
       }
 
 
