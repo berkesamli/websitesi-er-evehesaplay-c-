@@ -805,15 +805,16 @@
       .olga-frame-wrapper.has-real-frame .olga-frame {
         background: transparent !important;
         box-shadow: none !important;
-        padding: 0 !important;
+        /* padding korunuyor - paspartu hizalaması için gerekli */
       }
 
-      /* Gerçek görsel varken bevel'i gizle (çerçeve görseli kendi kesim detayını içeriyor) */
+      /* Gerçek görsel varken bevel şeffaf olsun (yapı korunuyor) */
       .olga-frame-wrapper.has-real-frame .olga-bevel-outer,
       .olga-frame-wrapper.has-real-frame .olga-bevel-inner {
-        padding: 0 !important;
         background: transparent !important;
+        /* padding korunuyor - hizalama için gerekli */
       }
+
 
       /* Dış Paspartu */
       .olga-mat-outer{
@@ -1660,7 +1661,7 @@
           frameImage.style.height = "160px";
           // 9-slice: köşeler sabit, kenarlar esner (slice=12% frame kalınlığı için)
           frameImage.style.borderWidth = "20px";
-          frameImage.style.borderImage = `url('${realFrameUrl}') 12% round`;
+          frameImage.style.borderImage = `url('${realFrameUrl}') 15% round`;
         } else {
           frameWrapper.classList.remove("has-real-frame");
           frameImage.style.display = "none";
@@ -1692,7 +1693,8 @@
     const totalW = Math.max(STATE.totalWMM, STATE.artWMM);
     const totalH = Math.max(STATE.totalHMM, STATE.artHMM);
 
-    const frameBorderPx = Math.max(8, Math.min(14, Math.round(Math.min(availW, availH) * 0.055)));
+    // Çerçeve kalınlığı - daha büyük görünsün
+    const frameBorderPx = Math.max(18, Math.min(30, Math.round(Math.min(availW, availH) * 0.12)));
     frame.style.padding = frameBorderPx + "px";
 
     const innerW = Math.max(40, availW - frameBorderPx * 2);
@@ -1715,7 +1717,7 @@
         frameImage.style.height = `${contentH + frameBorderPx * 2}px`;
         // 9-slice: köşeler sabit, kenarlar esner
         frameImage.style.borderWidth = `${frameBorderPx}px`;
-        frameImage.style.borderImage = `url('${realFrameUrl}') 12% round`;
+        frameImage.style.borderImage = `url('${realFrameUrl}') 15% round`;
       } else {
         frameWrapper.classList.remove("has-real-frame");
         frameImage.style.display = "none";
