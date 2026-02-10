@@ -775,7 +775,7 @@
         justify-content: center;
       }
 
-      /* Gerçek çerçeve görseli (background + mask) */
+      /* Gerçek çerçeve görseli */
       .olga-frame-image {
         position: absolute;
         top: 50%;
@@ -806,7 +806,13 @@
       .olga-frame-wrapper.has-real-frame .olga-frame {
         background: transparent !important;
         box-shadow: none !important;
+      }
+
+      /* Gerçek görsel varken bevel'i gizle (çerçeve görseli kendi kesim detayını içeriyor) */
+      .olga-frame-wrapper.has-real-frame .olga-bevel-outer,
+      .olga-frame-wrapper.has-real-frame .olga-bevel-inner {
         padding: 0 !important;
+        background: transparent !important;
       }
 
       /* Dış Paspartu */
