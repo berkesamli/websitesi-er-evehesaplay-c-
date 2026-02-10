@@ -775,7 +775,7 @@
         justify-content: center;
       }
 
-      /* Gerçek çerçeve görseli */
+      /* Gerçek çerçeve görseli (border-image 9-slice) */
       .olga-frame-image {
         position: absolute;
         top: 50%;
@@ -784,11 +784,10 @@
         box-sizing: border-box;
         z-index: 5;
         pointer-events: none;
-        background-size: 100% 100%;
-        background-repeat: no-repeat;
-        background-position: center;
+        border-style: solid;
+        border-width: 0;
         box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        transition: width 0.35s ease-out, height 0.35s ease-out;
+        transition: width 0.35s ease-out, height 0.35s ease-out, border-width 0.35s ease-out;
       }
 
       .olga-frame{
@@ -1658,7 +1657,9 @@
           frameImage.style.display = "block";
           frameImage.style.width = "160px";
           frameImage.style.height = "160px";
-          frameImage.style.backgroundImage = `url('${realFrameUrl}')`;
+          // 9-slice: köşeler sabit, kenarlar esner (slice=12% frame kalınlığı için)
+          frameImage.style.borderWidth = "20px";
+          frameImage.style.borderImage = `url('${realFrameUrl}') 12% round`;
         } else {
           frameWrapper.classList.remove("has-real-frame");
           frameImage.style.display = "none";
@@ -1711,7 +1712,9 @@
         frameImage.style.display = "block";
         frameImage.style.width = `${contentW + frameBorderPx * 2}px`;
         frameImage.style.height = `${contentH + frameBorderPx * 2}px`;
-        frameImage.style.backgroundImage = `url('${realFrameUrl}')`;
+        // 9-slice: köşeler sabit, kenarlar esner
+        frameImage.style.borderWidth = `${frameBorderPx}px`;
+        frameImage.style.borderImage = `url('${realFrameUrl}') 12% round`;
       } else {
         frameWrapper.classList.remove("has-real-frame");
         frameImage.style.display = "none";
