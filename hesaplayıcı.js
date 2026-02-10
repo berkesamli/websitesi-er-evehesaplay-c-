@@ -775,18 +775,20 @@
         justify-content: center;
       }
 
-      /* Gerçek çerçeve görseli (border-image) */
+      /* Gerçek çerçeve görseli */
       .olga-frame-image {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        border-style: solid;
-        border-width: 0;
         box-sizing: border-box;
         z-index: 5;
         pointer-events: none;
-        transition: border-width 0.35s ease-out, width 0.35s ease-out, height 0.35s ease-out;
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        background-position: center;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        transition: width 0.35s ease-out, height 0.35s ease-out;
       }
 
       .olga-frame{
@@ -804,6 +806,13 @@
       .olga-frame-wrapper.has-real-frame .olga-frame {
         background: transparent !important;
         box-shadow: none !important;
+      }
+
+      /* Gerçek görsel varken bevel'i gizle (çerçeve görseli kendi kesim detayını içeriyor) */
+      .olga-frame-wrapper.has-real-frame .olga-bevel-outer,
+      .olga-frame-wrapper.has-real-frame .olga-bevel-inner {
+        padding: 0 !important;
+        background: transparent !important;
       }
 
       /* Dış Paspartu */
@@ -1087,8 +1096,8 @@
         </div>
         <div class="olga-preview-box">
           <div class="olga-frame-wrapper" id="olga_frame_wrapper">
-            <!-- Gerçek çerçeve görseli (PNG overlay) -->
-            <img class="olga-frame-image" id="olga_frame_image" src="" alt="" style="display:none;">
+            <!-- Gerçek çerçeve görseli (background overlay) -->
+            <div class="olga-frame-image" id="olga_frame_image" style="display:none;"></div>
             <!-- Fallback çerçeve (görsel yoksa) -->
             <div class="olga-frame" id="olga_frame">
               <!-- Dış Paspartu -->
@@ -1649,9 +1658,7 @@
           frameImage.style.display = "block";
           frameImage.style.width = "160px";
           frameImage.style.height = "160px";
-          frameImage.style.borderWidth = "10px";
-          frameImage.style.borderImage = `url('${realFrameUrl}') 30 stretch`;
-          frameImage.style.boxShadow = "0 8px 32px rgba(0,0,0,0.3)";
+          frameImage.style.backgroundImage = `url('${realFrameUrl}')`;
         } else {
           frameWrapper.classList.remove("has-real-frame");
           frameImage.style.display = "none";
@@ -1704,9 +1711,7 @@
         frameImage.style.display = "block";
         frameImage.style.width = `${contentW + frameBorderPx * 2}px`;
         frameImage.style.height = `${contentH + frameBorderPx * 2}px`;
-        frameImage.style.borderWidth = `${frameBorderPx}px`;
-        frameImage.style.borderImage = `url('${realFrameUrl}') ${Math.round(frameBorderPx * 3)} stretch`;
-        frameImage.style.boxShadow = "0 8px 32px rgba(0,0,0,0.3)";
+        frameImage.style.backgroundImage = `url('${realFrameUrl}')`;
       } else {
         frameWrapper.classList.remove("has-real-frame");
         frameImage.style.display = "none";
