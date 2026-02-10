@@ -70,27 +70,95 @@
   };
 
   // ========== ÇERÇEVE GÖRSELLERİ (SKU -> URL) ==========
+  // Kare görsel: SKU
+  // Dikdörtgen görsel: SKU_2
   const FRAME_IMAGES = {
     "GD154-4313-BA": "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp",
+    "GD154-4313-BA_2": "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/c34f0078-0da6-49e1-bab8-636e4a505205/image_1080.webp",
     // Yeni çerçeveler buraya eklenecek:
-    // "SKU-KODU": "https://cdn.../gorsel.png",
+    // "SKU-KODU": "https://cdn.../kare.webp",
+    // "SKU-KODU_2": "https://cdn.../dikdortgen.webp",
   };
 
-  // Çerçeve görselini SKU'dan al
-  function getFrameImageUrl() {
+  // Aspect ratio'ya göre doğru çerçeve görselini seç
+  function getFrameImageData() {
     const sku = getProductSku();
-    if (sku && FRAME_IMAGES[sku]) {
-      return FRAME_IMAGES[sku];
-    }
-    // SKU'nun farklı varyasyonlarını dene (tire, boşluk, büyük/küçük harf)
+    if (!sku) return null;
+
+    // Aspect ratio hesapla
+    const w = STATE.totalWMM || STATE.artWMM || 100;
+    const h = STATE.totalHMM || STATE.artHMM || 100;
+    const ratio = w / h;
+
+    // Kare mi dikdörtgen mi?
+    const isSquare = ratio >= 0.8 && ratio <= 1.25;
+    const isVertical = ratio < 0.8; // Dikey dikdörtgen
+
+    // Doğru görseli bul
+    let imageUrl = null;
+    let rotation = 0;
+
+    // SKU'yu normalize et
     const skuNormalized = sku.toUpperCase().replace(/[\s-_]/g, '');
-    for (const key in FRAME_IMAGES) {
-      const keyNormalized = key.toUpperCase().replace(/[\s-_]/g, '');
-      if (keyNormalized === skuNormalized) {
-        return FRAME_IMAGES[key];
+
+    // Önce tam eşleşme dene
+    if (isSquare) {
+      // Kare görsel
+      if (FRAME_IMAGES[sku]) {
+        imageUrl = FRAME_IMAGES[sku];
+      }
+    } else {
+      // Dikdörtgen görsel (_2 suffix)
+      const rectSku = sku + "_2";
+      if (FRAME_IMAGES[rectSku]) {
+        imageUrl = FRAME_IMAGES[rectSku];
+        rotation = isVertical ? 90 : 0;
+      } else if (FRAME_IMAGES[sku]) {
+        // Dikdörtgen yoksa kare kullan
+        imageUrl = FRAME_IMAGES[sku];
       }
     }
-    return null;
+
+    // Normalize edilmiş arama
+    if (!imageUrl) {
+      for (const key in FRAME_IMAGES) {
+        const keyNormalized = key.toUpperCase().replace(/[\s-_]/g, '');
+        const keyBase = keyNormalized.replace(/2$/, '');
+
+        if (isSquare && keyNormalized === skuNormalized) {
+          imageUrl = FRAME_IMAGES[key];
+          break;
+        } else if (!isSquare && keyNormalized === skuNormalized + "2") {
+          imageUrl = FRAME_IMAGES[key];
+          rotation = isVertical ? 90 : 0;
+          break;
+        }
+      }
+    }
+
+    // Hâlâ bulunamadıysa, herhangi bir eşleşme
+    if (!imageUrl) {
+      for (const key in FRAME_IMAGES) {
+        const keyNormalized = key.toUpperCase().replace(/[\s-_]/g, '');
+        if (keyNormalized === skuNormalized || keyNormalized.startsWith(skuNormalized)) {
+          imageUrl = FRAME_IMAGES[key];
+          break;
+        }
+      }
+    }
+
+    if (!imageUrl) return null;
+
+    return {
+      url: imageUrl,
+      rotation: rotation
+    };
+  }
+
+  // Eski fonksiyon uyumluluğu için
+  function getFrameImageUrl() {
+    const data = getFrameImageData();
+    return data ? data.url : null;
   }
 
   const STATE = {
@@ -775,7 +843,7 @@
         justify-content: center;
       }
 
-      /* Gerçek çerçeve görseli (border-image 9-slice) */
+      /* Gerçek çerçeve görseli (background-image, esneme yok) */
       .olga-frame-image {
         position: absolute;
         top: 50%;
@@ -784,10 +852,16 @@
         box-sizing: border-box;
         z-index: 5;
         pointer-events: none;
-        border-style: solid;
-        border-width: 0;
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        background-position: center;
         box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        transition: width 0.35s ease-out, height 0.35s ease-out, border-width 0.35s ease-out;
+        transition: width 0.35s ease-out, height 0.35s ease-out, transform 0.35s ease-out;
+      }
+
+      /* Dikey dikdörtgen için 90° döndür */
+      .olga-frame-image.rotated {
+        transform: translate(-50%, -50%) rotate(90deg);
       }
 
       .olga-frame{
@@ -1627,9 +1701,11 @@
 
     if (!frame || !matOuter || !bevelOuter || !box) return;
 
-    // Gerçek çerçeve görseli kontrolü
-    const realFrameUrl = getFrameImageUrl();
-    const hasRealFrame = !!realFrameUrl;
+    // Gerçek çerçeve görseli kontrolü (aspect ratio'ya göre kare/dikdörtgen seçimi)
+    const frameData = getFrameImageData();
+    const hasRealFrame = !!frameData;
+    const realFrameUrl = frameData ? frameData.url : null;
+    const frameRotation = frameData ? frameData.rotation : 0;
 
     const boxW = box.clientWidth;
     const boxH = box.clientHeight;
@@ -1655,16 +1731,15 @@
       frame.style.height = "160px";
       frame.style.padding = "10px";
 
-      // Gerçek çerçeve görseli (varsayılan durumda)
+      // Gerçek çerçeve görseli (varsayılan durumda - kare)
       if (frameWrapper && frameImage) {
         if (hasRealFrame) {
           frameWrapper.classList.add("has-real-frame");
           frameImage.style.display = "block";
           frameImage.style.width = "160px";
           frameImage.style.height = "160px";
-          // 9-slice: köşeler sabit, kenarlar esner (slice=12% frame kalınlığı için)
-          frameImage.style.borderWidth = "20px";
-          frameImage.style.borderImage = `url('${realFrameUrl}') 15% round`;
+          frameImage.style.backgroundImage = `url('${realFrameUrl}')`;
+          frameImage.classList.remove("rotated");
         } else {
           frameWrapper.classList.remove("has-real-frame");
           frameImage.style.display = "none";
@@ -1716,14 +1791,24 @@
       if (hasRealFrame) {
         frameWrapper.classList.add("has-real-frame");
         frameImage.style.display = "block";
-        frameImage.style.width = `${contentW + frameBorderPx * 2}px`;
-        frameImage.style.height = `${contentH + frameBorderPx * 2}px`;
-        // 9-slice: köşeler sabit, kenarlar esner
-        frameImage.style.borderWidth = `${frameBorderPx}px`;
-        frameImage.style.borderImage = `url('${realFrameUrl}') 15% round`;
+
+        // Dikey dikdörtgen için görseli 90° döndür
+        if (frameRotation === 90) {
+          // Döndürülmüş: genişlik ve yükseklik yer değiştirir
+          frameImage.style.width = `${contentH + frameBorderPx * 2}px`;
+          frameImage.style.height = `${contentW + frameBorderPx * 2}px`;
+          frameImage.classList.add("rotated");
+        } else {
+          frameImage.style.width = `${contentW + frameBorderPx * 2}px`;
+          frameImage.style.height = `${contentH + frameBorderPx * 2}px`;
+          frameImage.classList.remove("rotated");
+        }
+
+        frameImage.style.backgroundImage = `url('${realFrameUrl}')`;
       } else {
         frameWrapper.classList.remove("has-real-frame");
         frameImage.style.display = "none";
+        frameImage.classList.remove("rotated");
       }
     }
 
