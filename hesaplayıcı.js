@@ -1035,24 +1035,29 @@
           <div class="olga-preview-sub" id="olga_preview_label">-</div>
         </div>
         <div class="olga-preview-box">
-          <div class="olga-frame" id="olga_frame">
-            <!-- Dış Paspartu -->
-            <div class="olga-mat-outer" id="olga_mat_outer">
-              <!-- 45° Bevel - Dış paspartu kesimi -->
-              <div class="olga-bevel-outer" id="olga_bevel_outer">
-                <!-- TEK paspartu için eser -->
-                <div class="olga-art-single" id="olga_art_single"></div>
-                <!-- ÇİFT paspartu için iç katman -->
-                <div class="olga-mat-inner" id="olga_mat_inner" style="display:none;">
-                  <!-- 45° Bevel - İç paspartu kesimi -->
-                  <div class="olga-bevel-inner" id="olga_bevel_inner">
-                    <!-- Eser -->
-                    <div class="olga-art" id="olga_art"></div>
+          <div class="olga-frame-wrapper" id="olga_frame_wrapper">
+            <!-- Gerçek çerçeve görseli (PNG overlay) -->
+            <img class="olga-frame-image" id="olga_frame_image" src="" alt="" style="display:none;">
+            <!-- Fallback çerçeve (görsel yoksa) -->
+            <div class="olga-frame" id="olga_frame">
+              <!-- Dış Paspartu -->
+              <div class="olga-mat-outer" id="olga_mat_outer">
+                <!-- 45° Bevel - Dış paspartu kesimi -->
+                <div class="olga-bevel-outer" id="olga_bevel_outer">
+                  <!-- TEK paspartu için eser -->
+                  <div class="olga-art-single" id="olga_art_single"></div>
+                  <!-- ÇİFT paspartu için iç katman -->
+                  <div class="olga-mat-inner" id="olga_mat_inner" style="display:none;">
+                    <!-- 45° Bevel - İç paspartu kesimi -->
+                    <div class="olga-bevel-inner" id="olga_bevel_inner">
+                      <!-- Eser -->
+                      <div class="olga-art" id="olga_art"></div>
+                    </div>
                   </div>
                 </div>
               </div>
+              <div class="olga-glass" id="olga_glass" style="display:none"></div>
             </div>
-            <div class="olga-glass" id="olga_glass" style="display:none"></div>
           </div>
         </div>
         <div class="olga-note" id="olga_preview_note">Ölçü girince canlı olarak güncellenir.</div>
