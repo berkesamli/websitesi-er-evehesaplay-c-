@@ -807,34 +807,21 @@
         position: relative;
       }
 
-      /* Gerçek görsel varken - tüm arka planı paspartu rengi yap */
-      .olga-frame-wrapper.has-real-frame {
-        background: var(--mat-color, #ffffff) !important;
-      }
-
+      /* Gerçek görsel varken fallback çerçeveyi gizle */
       .olga-frame-wrapper.has-real-frame .olga-frame {
-        background: var(--mat-color, #ffffff) !important;
+        background: transparent !important;
         box-shadow: none !important;
-        padding: 0 !important;
       }
 
       /* Gerçek görsel varken bevel şeffaf olsun */
       .olga-frame-wrapper.has-real-frame .olga-bevel-outer,
       .olga-frame-wrapper.has-real-frame .olga-bevel-inner {
         background: transparent !important;
-        padding: 0 !important;
       }
 
-      /* Paspartuyu tüm alanı dolduracak şekilde genişlet */
+      /* Paspartuyu biraz dışa taşı - çerçeveyle aradaki boşluğu kapat */
       .olga-frame-wrapper.has-real-frame .olga-mat-outer {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        margin: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
+        margin: -5px !important;
       }
 
 
@@ -1734,11 +1721,6 @@
       if (hasRealFrame) {
         frameWrapper.classList.add("has-real-frame");
         frameImage.style.display = "block";
-
-        // Paspartu rengini arka plana ayarla (boşlukları doldurmak için)
-        const matColor = getMatPreviewBackground();
-        frameWrapper.style.setProperty('--mat-color', matColor);
-        frame.style.background = matColor;
 
         // Çerçeve boyutları
         frameImage.style.width = `${contentW + frameBorderPx * 2}px`;
