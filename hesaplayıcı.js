@@ -875,9 +875,13 @@
         position: relative;
       }
 
-      /* Gerçek görsel varken fallback çerçeveyi gizle */
+      /* Gerçek görsel varken - tüm arka planı paspartu rengi yap */
+      .olga-frame-wrapper.has-real-frame {
+        background: var(--mat-color, #ffffff) !important;
+      }
+
       .olga-frame-wrapper.has-real-frame .olga-frame {
-        background: transparent !important;
+        background: var(--mat-color, #ffffff) !important;
         box-shadow: none !important;
         padding: 0 !important;
       }
@@ -1800,6 +1804,11 @@
       if (hasRealFrame) {
         frameWrapper.classList.add("has-real-frame");
         frameImage.style.display = "block";
+
+        // Paspartu rengini CSS değişkeni olarak ayarla (boşlukları doldurmak için)
+        const matColor = getMatPreviewBackground();
+        frameWrapper.style.setProperty('--mat-color', matColor);
+        frame.style.background = matColor;
 
         // Dikey dikdörtgen için görseli 90° döndür
         if (frameRotation === 90) {
