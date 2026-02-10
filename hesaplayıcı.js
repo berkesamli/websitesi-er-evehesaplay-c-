@@ -805,6 +805,7 @@
       .olga-frame-wrapper.has-real-frame .olga-frame {
         background: transparent !important;
         box-shadow: none !important;
+        padding: 0 !important;
       }
 
       /* Gerçek görsel varken bevel'i gizle (çerçeve görseli kendi kesim detayını içeriyor) */
@@ -1684,7 +1685,7 @@
     }
 
     // Boyut hesaplamaları
-    const safePad = 14;
+    const safePad = 6;
     const availW = Math.max(90, boxW - safePad * 2);
     const availH = Math.max(90, boxH - safePad * 2);
 
