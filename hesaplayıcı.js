@@ -1718,7 +1718,9 @@
         frameImage.style.display = "block";
 
         // Paspartu rengini CSS değişkeni olarak ayarla (boşlukları doldurmak için)
-        const matColor = getMatPreviewBackground();
+        // Paspartu yoksa eser arka plan rengini kullan
+        const hasMat = STATE.matTypePriceM2 > 0;
+        const matColor = hasMat ? getMatPreviewBackground() : '#d0d0d0';
         frame.style.setProperty('--mat-color', matColor);
 
         // Çerçeve boyutları (aynı kalıyor)
@@ -1751,8 +1753,10 @@
     const cRight = hasMatEdges && STATE.matRight > 0 ? Math.max(minMatPx, Math.min(rawRight, (contentW - 20) / 2)) : 0;
 
     // Eser boyutları - paspartu için yer bırak
-    const artWpx = Math.max(20, contentW - cLeft - cRight - 10);
-    const artHpx = Math.max(20, contentH - cTop - cBottom - 10);
+    // Paspartu yoksa boşluk bırakma, varsa 10px bırak
+    const artGap = hasMatEdges ? 10 : 0;
+    const artWpx = Math.max(20, contentW - cLeft - cRight - artGap);
+    const artHpx = Math.max(20, contentH - cTop - cBottom - artGap);
 
     // ========== ÇİFT PASPARTU ==========
     if (isDouble) {
@@ -1798,9 +1802,9 @@
         bevelOuter.style.padding = `${bevelPx}px`;
         bevelOuter.style.background = "#ffffff";
       } else {
-        // Paspartu yok
+        // Paspartu yok - tüm ara katmanları transparent yap
         matOuter.style.padding = "0px";
-        matOuter.style.background = "#ffffff";
+        matOuter.style.background = "transparent";
         bevelOuter.style.padding = "0px";
         bevelOuter.style.background = "transparent";
       }
