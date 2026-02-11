@@ -1721,8 +1721,8 @@
         frameImage.style.width = `${contentW + frameBorderPx * 2}px`;
         frameImage.style.height = `${contentH + frameBorderPx * 2}px`;
 
-        // Çerçeve paspartunun üstüne binsin: border-width artırılıyor (+10px overlap)
-        const overlap = 10;
+        // Çerçeve paspartunun üstüne binsin: border-width artırılıyor (+15px overlap)
+        const overlap = 15;
         frameImage.style.borderWidth = `${frameBorderPx + overlap}px`;
         frameImage.style.borderImage = `url('${realFrameUrl}') 15% round`;
       } else {
