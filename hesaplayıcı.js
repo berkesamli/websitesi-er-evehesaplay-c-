@@ -807,9 +807,9 @@
         position: relative;
       }
 
-      /* Gerçek görsel varken fallback çerçeveyi gizle */
+      /* Gerçek görsel varken - çerçeve arka planını paspartu rengiyle doldur */
       .olga-frame-wrapper.has-real-frame .olga-frame {
-        background: transparent !important;
+        background: var(--mat-color, #ffffff) !important;
         box-shadow: none !important;
       }
 
@@ -817,11 +817,6 @@
       .olga-frame-wrapper.has-real-frame .olga-bevel-outer,
       .olga-frame-wrapper.has-real-frame .olga-bevel-inner {
         background: transparent !important;
-      }
-
-      /* Paspartuyu biraz dışa taşı - çerçeveyle aradaki boşluğu kapat */
-      .olga-frame-wrapper.has-real-frame .olga-mat-outer {
-        margin: -5px !important;
       }
 
 
@@ -1722,12 +1717,18 @@
         frameWrapper.classList.add("has-real-frame");
         frameImage.style.display = "block";
 
-        // Çerçeve boyutları
+        // Paspartu rengini CSS değişkeni olarak ayarla (boşlukları doldurmak için)
+        const matColor = getMatPreviewBackground();
+        frame.style.setProperty('--mat-color', matColor);
+
+        // Çerçeve boyutları (aynı kalıyor)
         frameImage.style.width = `${contentW + frameBorderPx * 2}px`;
         frameImage.style.height = `${contentH + frameBorderPx * 2}px`;
 
-        // 9-slice border-image: köşeler sabit, kenarlar esner
-        frameImage.style.borderWidth = `${frameBorderPx}px`;
+        // Çerçeve paspartunun üstüne binsin: border-width artırılıyor
+        // Bu sayede çerçevenin iç kenarı paspartunun dışına taşıyor
+        const overlap = 4;
+        frameImage.style.borderWidth = `${frameBorderPx + overlap}px`;
         frameImage.style.borderImage = `url('${realFrameUrl}') 15% round`;
       } else {
         frameWrapper.classList.remove("has-real-frame");
