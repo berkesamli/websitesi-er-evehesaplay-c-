@@ -1721,12 +1721,15 @@
         const matColor = getMatPreviewBackground();
         frame.style.setProperty('--mat-color', matColor);
 
-        // Çerçeve boyutları
-        frameImage.style.width = `${contentW + frameBorderPx * 2}px`;
-        frameImage.style.height = `${contentH + frameBorderPx * 2}px`;
+        // Çerçeve paspartunun üstüne 3px binsin (gerçek çerçeve gibi)
+        const overlap = 3;
+
+        // Çerçeve boyutları (overlap ile büyütülmüş)
+        frameImage.style.width = `${contentW + frameBorderPx * 2 + overlap * 2}px`;
+        frameImage.style.height = `${contentH + frameBorderPx * 2 + overlap * 2}px`;
 
         // 9-slice border-image: köşeler sabit, kenarlar esner
-        frameImage.style.borderWidth = `${frameBorderPx}px`;
+        frameImage.style.borderWidth = `${frameBorderPx + overlap}px`;
         frameImage.style.borderImage = `url('${realFrameUrl}') 15% round`;
       } else {
         frameWrapper.classList.remove("has-real-frame");
