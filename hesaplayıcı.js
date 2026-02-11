@@ -1721,14 +1721,13 @@
         const matColor = getMatPreviewBackground();
         frame.style.setProperty('--mat-color', matColor);
 
-        // Çerçeve paspartunun üstüne 3px binsin (gerçek çerçeve gibi)
-        const overlap = 3;
+        // Çerçeve boyutları (aynı kalıyor)
+        frameImage.style.width = `${contentW + frameBorderPx * 2}px`;
+        frameImage.style.height = `${contentH + frameBorderPx * 2}px`;
 
-        // Çerçeve boyutları (overlap ile büyütülmüş)
-        frameImage.style.width = `${contentW + frameBorderPx * 2 + overlap * 2}px`;
-        frameImage.style.height = `${contentH + frameBorderPx * 2 + overlap * 2}px`;
-
-        // 9-slice border-image: köşeler sabit, kenarlar esner
+        // Çerçeve paspartunun üstüne binsin: border-width artırılıyor
+        // Bu sayede çerçevenin iç kenarı paspartunun dışına taşıyor
+        const overlap = 4;
         frameImage.style.borderWidth = `${frameBorderPx + overlap}px`;
         frameImage.style.borderImage = `url('${realFrameUrl}') 15% round`;
       } else {
