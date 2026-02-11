@@ -807,9 +807,9 @@
         position: relative;
       }
 
-      /* Gerçek görsel varken fallback çerçeveyi gizle */
+      /* Gerçek görsel varken - çerçeve arka planını paspartu rengiyle doldur */
       .olga-frame-wrapper.has-real-frame .olga-frame {
-        background: transparent !important;
+        background: var(--mat-color, #ffffff) !important;
         box-shadow: none !important;
       }
 
@@ -1717,12 +1717,17 @@
         frameWrapper.classList.add("has-real-frame");
         frameImage.style.display = "block";
 
-        // Çerçeve boyutları
+        // Paspartu rengini CSS değişkeni olarak ayarla (boşlukları doldurmak için)
+        const matColor = getMatPreviewBackground();
+        frame.style.setProperty('--mat-color', matColor);
+
+        // Çerçeve boyutları (aynı kalıyor)
         frameImage.style.width = `${contentW + frameBorderPx * 2}px`;
         frameImage.style.height = `${contentH + frameBorderPx * 2}px`;
 
-        // Çerçeve paspartunun üstüne binsin: border-width artırılıyor (+15px overlap)
-        const overlap = 15;
+        // Çerçeve paspartunun üstüne binsin: border-width artırılıyor
+        // Bu sayede çerçevenin iç kenarı paspartunun dışına taşıyor
+        const overlap = 4;
         frameImage.style.borderWidth = `${frameBorderPx + overlap}px`;
         frameImage.style.borderImage = `url('${realFrameUrl}') 15% round`;
       } else {
