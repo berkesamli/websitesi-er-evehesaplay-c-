@@ -2014,12 +2014,15 @@
     // Paspartu bilgisi oluştur
     let paspartuInfo = "";
     if (STATE.matTypePriceM2 > 0) {
+      const kenarBilgisi = `Sol: ${STATE.matLeft}mm, Sağ: ${STATE.matRight}mm, Üst: ${STATE.matTop}mm, Alt: ${STATE.matBottom}mm`;
       if (STATE.isDoubleMat && STATE.mat2TypePriceM2 > 0) {
         paspartuInfo = `Dış Paspartu: ${STATE.matTypeLabel} (${STATE.matColorCode || "-"})`;
+        paspartuInfo += `\nKenar Kalınlıkları: ${kenarBilgisi}`;
         paspartuInfo += `\nİç Paspartu: ${STATE.mat2TypeLabel} (${STATE.mat2ColorCode || "-"})`;
         paspartuInfo += `\nAlt Montaj Genişliği: ${STATE.mountingWidth || 5}mm`;
       } else {
         paspartuInfo = `Paspartu: ${STATE.matTypeLabel} (${STATE.matColorCode || "-"})`;
+        paspartuInfo += `\nKenar Kalınlıkları: ${kenarBilgisi}`;
       }
     } else {
       paspartuInfo = "Paspartu: Yok";
