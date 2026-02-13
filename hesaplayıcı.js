@@ -85,6 +85,10 @@
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/5bc0e7d1-c8c9-451b-98c8-f0412188e500/image_1080.webp",
       slice: "8%"   // İnce çerçeve
     },
+    "GB139-1211T": {
+      url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/48479c0b-c501-4ee3-83b7-a2f061493c91/image_1080.webp",
+      slice: "4%"   // Çok ince çerçeve
+    },
     // Yeni çerçeveler buraya eklenecek:
     // "SKU-KODU": {
     //   url: "https://cdn.../gorsel.webp",
