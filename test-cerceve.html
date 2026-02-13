@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Çerçeve Test - GD154-4313-BA</title>
+  <title>Çerçeve Test - Dikdörtgen Destek</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -12,31 +12,52 @@
       padding: 30px;
       min-height: 100vh;
     }
-    h1 { text-align: center; margin-bottom: 20px; color: #ffd700; }
+    h1 { text-align: center; margin-bottom: 10px; color: #ffd700; }
+    .subtitle { text-align: center; margin-bottom: 25px; color: #94bbe9; font-size: 14px; }
     .controls {
       background: #16213e;
       padding: 20px;
       border-radius: 12px;
-      max-width: 500px;
+      max-width: 600px;
       margin: 0 auto 30px;
+    }
+    .control-section {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #0f3460;
+    }
+    .control-section:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    .section-title {
+      color: #e94560;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
     }
     .control-row {
       display: flex;
       align-items: center;
       gap: 15px;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
     }
-    label { min-width: 120px; font-weight: 500; }
+    .control-row:last-child { margin-bottom: 0; }
+    label { min-width: 130px; font-weight: 500; font-size: 14px; }
     input[type="range"] { flex: 1; }
-    input[type="number"] {
-      width: 80px;
+    input[type="number"], input[type="text"] {
+      width: 100px;
       padding: 8px;
       border: none;
       border-radius: 6px;
       background: #0f3460;
       color: #fff;
       text-align: center;
+      font-size: 14px;
     }
+    input[type="text"] { width: 100%; text-align: left; }
     .value-display {
       background: #e94560;
       padding: 5px 12px;
@@ -44,11 +65,12 @@
       font-weight: bold;
       min-width: 60px;
       text-align: center;
+      font-size: 13px;
     }
     .preview-container {
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       gap: 40px;
       flex-wrap: wrap;
     }
@@ -65,8 +87,6 @@
     }
     .frame-img {
       display: block;
-      width: var(--frame-size);
-      height: var(--frame-size);
       object-fit: fill;
     }
     .content-area {
@@ -76,9 +96,10 @@
       align-items: center;
       justify-content: center;
       color: #fff;
-      font-size: 14px;
+      font-size: 12px;
       font-weight: bold;
       text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+      overflow: hidden;
     }
     .paspartu-area {
       position: absolute;
@@ -92,29 +113,82 @@
       padding: 15px 20px;
       border-radius: 8px;
       margin-top: 20px;
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.8;
+      text-align: left;
     }
     .highlight { color: #ffd700; font-weight: bold; }
+    .highlight-x { color: #00d4ff; font-weight: bold; }
+    .highlight-y { color: #ff6b6b; font-weight: bold; }
+    .btn {
+      background: #e94560;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .btn:hover { background: #ff6b6b; }
+    .frame-info {
+      background: #0f3460;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-size: 12px;
+      color: #94bbe9;
+    }
   </style>
 </head>
 <body>
-  <h1>Çerçeve Test: GD154-4313-BA</h1>
+  <h1>Çerçeve Test Sayfası</h1>
+  <p class="subtitle">Dikdörtgen Çerçeve Desteği - Ayrı X/Y innerRatio</p>
 
   <div class="controls">
-    <div class="control-row">
-      <label>innerRatio:</label>
-      <input type="range" id="ratioSlider" min="0.50" max="0.98" step="0.01" value="0.78">
-      <span class="value-display" id="ratioValue">0.78</span>
+    <div class="control-section">
+      <div class="section-title">Çerçeve Boyutları (px)</div>
+      <div class="control-row">
+        <label>Dış Genişlik (X):</label>
+        <input type="number" id="outerWidth" min="100" max="2000" value="759">
+      </div>
+      <div class="control-row">
+        <label>Dış Yükseklik (Y):</label>
+        <input type="number" id="outerHeight" min="100" max="2000" value="651">
+      </div>
+      <div class="control-row">
+        <label>İç Genişlik (X):</label>
+        <input type="number" id="innerWidth" min="50" max="1900" value="571">
+      </div>
+      <div class="control-row">
+        <label>İç Yükseklik (Y):</label>
+        <input type="number" id="innerHeight" min="50" max="1900" value="464">
+      </div>
+      <div class="frame-info" id="ratioInfo">
+        <strong>Hesaplanan innerRatio:</strong><br>
+        X: <span class="highlight-x">0.752</span> | Y: <span class="highlight-y">0.713</span>
+      </div>
     </div>
-    <div class="control-row">
-      <label>Önizleme Boyutu:</label>
-      <input type="range" id="sizeSlider" min="200" max="500" step="10" value="350">
-      <span class="value-display" id="sizeValue">350px</span>
+
+    <div class="control-section">
+      <div class="section-title">Önizleme Ayarları</div>
+      <div class="control-row">
+        <label>Önizleme Ölçeği:</label>
+        <input type="range" id="scaleSlider" min="0.3" max="1" step="0.05" value="0.5">
+        <span class="value-display" id="scaleValue">50%</span>
+      </div>
+      <div class="control-row">
+        <label>Paspartu (mm):</label>
+        <input type="number" id="paspartuInput" min="0" max="100" value="30">
+      </div>
     </div>
-    <div class="control-row">
-      <label>Paspartu (mm):</label>
-      <input type="number" id="paspartuInput" min="0" max="100" value="30">
+
+    <div class="control-section">
+      <div class="section-title">Çerçeve Görseli URL</div>
+      <div class="control-row">
+        <input type="text" id="frameUrl" placeholder="Çerçeve PNG/JPG URL'si girin...">
+      </div>
+      <button class="btn" onclick="loadFrame()">Görseli Yükle</button>
     </div>
   </div>
 
@@ -122,7 +196,7 @@
     <div class="preview-box">
       <h3>Paspartusuz</h3>
       <div class="frame-wrapper" id="wrapper1">
-        <img class="frame-img" id="frameImg1" src="https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp">
+        <img class="frame-img" id="frameImg1" src="">
         <div class="content-area" id="content1">ESER</div>
       </div>
       <div class="info-panel" id="info1"></div>
@@ -131,7 +205,7 @@
     <div class="preview-box">
       <h3>Paspartulu</h3>
       <div class="frame-wrapper" id="wrapper2">
-        <img class="frame-img" id="frameImg2" src="https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp">
+        <img class="frame-img" id="frameImg2" src="">
         <div class="paspartu-area" id="paspartu2">
           <div class="content-area" id="content2">ESER</div>
         </div>
@@ -141,81 +215,130 @@
   </div>
 
   <script>
-    const frameUrl = "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp";
-
-    const ratioSlider = document.getElementById('ratioSlider');
-    const sizeSlider = document.getElementById('sizeSlider');
+    // Elementler
+    const outerWidthInput = document.getElementById('outerWidth');
+    const outerHeightInput = document.getElementById('outerHeight');
+    const innerWidthInput = document.getElementById('innerWidth');
+    const innerHeightInput = document.getElementById('innerHeight');
+    const scaleSlider = document.getElementById('scaleSlider');
     const paspartuInput = document.getElementById('paspartuInput');
-    const ratioValue = document.getElementById('ratioValue');
-    const sizeValue = document.getElementById('sizeValue');
+    const frameUrlInput = document.getElementById('frameUrl');
+    const scaleValue = document.getElementById('scaleValue');
+    const ratioInfo = document.getElementById('ratioInfo');
+
+    let currentFrameUrl = '';
+
+    function loadFrame() {
+      const url = frameUrlInput.value.trim();
+      if (url) {
+        currentFrameUrl = url;
+        document.getElementById('frameImg1').src = url;
+        document.getElementById('frameImg2').src = url;
+        updatePreview();
+      }
+    }
 
     function updatePreview() {
-      const innerRatio = parseFloat(ratioSlider.value);
-      const frameSize = parseInt(sizeSlider.value);
+      // Boyutları al
+      const outerW = parseInt(outerWidthInput.value) || 759;
+      const outerH = parseInt(outerHeightInput.value) || 651;
+      const innerW = parseInt(innerWidthInput.value) || 571;
+      const innerH = parseInt(innerHeightInput.value) || 464;
+      const scale = parseFloat(scaleSlider.value);
       const paspartuMM = parseInt(paspartuInput.value) || 0;
 
-      ratioValue.textContent = innerRatio.toFixed(2);
-      sizeValue.textContent = frameSize + 'px';
+      // innerRatio hesapla
+      const innerRatioX = innerW / outerW;
+      const innerRatioY = innerH / outerH;
 
-      // Çerçeve kalınlığı oranı
-      const borderRatio = (1 - innerRatio) / 2;
-      const borderPx = frameSize * borderRatio;
-      const innerPx = frameSize * innerRatio;
+      // Ratio bilgisini güncelle
+      ratioInfo.innerHTML = `
+        <strong>Hesaplanan innerRatio:</strong><br>
+        X: <span class="highlight-x">${innerRatioX.toFixed(3)}</span> |
+        Y: <span class="highlight-y">${innerRatioY.toFixed(3)}</span>
+      `;
+
+      scaleValue.textContent = Math.round(scale * 100) + '%';
+
+      // Önizleme boyutları (ölçekli)
+      const previewW = outerW * scale;
+      const previewH = outerH * scale;
+      const previewInnerW = innerW * scale;
+      const previewInnerH = innerH * scale;
+
+      // Kenar kalınlıkları
+      const borderLeft = (outerW - innerW) / 2 * scale;
+      const borderTop = (outerH - innerH) / 2 * scale;
 
       // === Paspartusuz Önizleme ===
-      document.getElementById('wrapper1').style.setProperty('--frame-size', frameSize + 'px');
-      document.getElementById('frameImg1').style.width = frameSize + 'px';
-      document.getElementById('frameImg1').style.height = frameSize + 'px';
+      const frameImg1 = document.getElementById('frameImg1');
+      frameImg1.style.width = previewW + 'px';
+      frameImg1.style.height = previewH + 'px';
 
       const content1 = document.getElementById('content1');
-      content1.style.width = innerPx + 'px';
-      content1.style.height = innerPx + 'px';
-      content1.style.top = borderPx + 'px';
-      content1.style.left = borderPx + 'px';
+      content1.style.width = previewInnerW + 'px';
+      content1.style.height = previewInnerH + 'px';
+      content1.style.top = borderTop + 'px';
+      content1.style.left = borderLeft + 'px';
 
       document.getElementById('info1').innerHTML = `
-        <span class="highlight">innerRatio:</span> ${innerRatio.toFixed(2)}<br>
-        <span class="highlight">Çerçeve:</span> ${frameSize}px x ${frameSize}px<br>
-        <span class="highlight">İç Alan:</span> ${innerPx.toFixed(1)}px x ${innerPx.toFixed(1)}px<br>
-        <span class="highlight">Kenar:</span> ${borderPx.toFixed(1)}px
+        <span class="highlight">Çerçeve:</span> ${outerW} x ${outerH} px<br>
+        <span class="highlight">İç Alan:</span> ${innerW} x ${innerH} px<br>
+        <span class="highlight-x">innerRatioX:</span> ${innerRatioX.toFixed(3)}<br>
+        <span class="highlight-y">innerRatioY:</span> ${innerRatioY.toFixed(3)}<br>
+        <span class="highlight">Kenar:</span> Sol/Sağ ${((outerW - innerW) / 2).toFixed(1)}px, Üst/Alt ${((outerH - innerH) / 2).toFixed(1)}px
       `;
 
       // === Paspartulu Önizleme ===
-      document.getElementById('wrapper2').style.setProperty('--frame-size', frameSize + 'px');
-      document.getElementById('frameImg2').style.width = frameSize + 'px';
-      document.getElementById('frameImg2').style.height = frameSize + 'px';
+      const frameImg2 = document.getElementById('frameImg2');
+      frameImg2.style.width = previewW + 'px';
+      frameImg2.style.height = previewH + 'px';
 
-      // Paspartu hesaplama (gerçek mm'den px'e dönüşüm - ölçekli)
-      const scaleFactor = innerPx / 200; // 200mm varsayılan iç alan
-      const paspartuPx = paspartuMM * scaleFactor;
-      const artPx = innerPx - (paspartuPx * 2);
+      // Paspartu hesaplama (mm'den px'e - ortalama iç alan baz alınarak)
+      const avgInnerMM = 200; // varsayılan referans
+      const scaleFactorX = previewInnerW / avgInnerMM;
+      const scaleFactorY = previewInnerH / avgInnerMM;
+      const paspartuPxX = paspartuMM * scaleFactorX;
+      const paspartuPxY = paspartuMM * scaleFactorY;
+
+      const artW = previewInnerW - (paspartuPxX * 2);
+      const artH = previewInnerH - (paspartuPxY * 2);
 
       const paspartu2 = document.getElementById('paspartu2');
-      paspartu2.style.width = innerPx + 'px';
-      paspartu2.style.height = innerPx + 'px';
-      paspartu2.style.top = borderPx + 'px';
-      paspartu2.style.left = borderPx + 'px';
+      paspartu2.style.width = previewInnerW + 'px';
+      paspartu2.style.height = previewInnerH + 'px';
+      paspartu2.style.top = borderTop + 'px';
+      paspartu2.style.left = borderLeft + 'px';
 
       const content2 = document.getElementById('content2');
       content2.style.position = 'absolute';
-      content2.style.width = Math.max(artPx, 20) + 'px';
-      content2.style.height = Math.max(artPx, 20) + 'px';
-      content2.style.top = paspartuPx + 'px';
-      content2.style.left = paspartuPx + 'px';
+      content2.style.width = Math.max(artW, 20) + 'px';
+      content2.style.height = Math.max(artH, 20) + 'px';
+      content2.style.top = paspartuPxY + 'px';
+      content2.style.left = paspartuPxX + 'px';
 
       document.getElementById('info2').innerHTML = `
-        <span class="highlight">innerRatio:</span> ${innerRatio.toFixed(2)}<br>
-        <span class="highlight">Çerçeve:</span> ${frameSize}px x ${frameSize}px<br>
-        <span class="highlight">İç Alan:</span> ${innerPx.toFixed(1)}px (paspartu dahil)<br>
-        <span class="highlight">Paspartu:</span> ${paspartuMM}mm (${paspartuPx.toFixed(1)}px)<br>
-        <span class="highlight">Eser:</span> ${artPx.toFixed(1)}px x ${artPx.toFixed(1)}px
+        <span class="highlight">Çerçeve:</span> ${outerW} x ${outerH} px<br>
+        <span class="highlight">İç Alan:</span> ${innerW} x ${innerH} px<br>
+        <span class="highlight">Paspartu:</span> ${paspartuMM}mm<br>
+        <span class="highlight">Eser Alanı:</span> ${(artW / scale).toFixed(1)} x ${(artH / scale).toFixed(1)} px
       `;
     }
 
-    ratioSlider.addEventListener('input', updatePreview);
-    sizeSlider.addEventListener('input', updatePreview);
+    // Event listeners
+    outerWidthInput.addEventListener('input', updatePreview);
+    outerHeightInput.addEventListener('input', updatePreview);
+    innerWidthInput.addEventListener('input', updatePreview);
+    innerHeightInput.addEventListener('input', updatePreview);
+    scaleSlider.addEventListener('input', updatePreview);
     paspartuInput.addEventListener('input', updatePreview);
 
+    // Enter ile URL yükleme
+    frameUrlInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') loadFrame();
+    });
+
+    // İlk yükleme
     updatePreview();
   </script>
 </body>
