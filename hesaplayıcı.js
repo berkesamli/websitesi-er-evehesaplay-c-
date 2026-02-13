@@ -73,34 +73,46 @@
   // YENİ SİSTEM: Çerçeve resimleri ortası transparent PNG olmalı
   // Her çerçeve modeli için:
   // - url: Transparent PNG görsel linki (ortası saydam)
-  // - innerRatio: İç boşluk oranı (0.78 = resmin %78'i iç boşluk, %22 çerçeve kalınlığı)
+  // - innerRatioX: Yatay iç boşluk oranı (iç genişlik / dış genişlik)
+  // - innerRatioY: Dikey iç boşluk oranı (iç yükseklik / dış yükseklik)
+  // - (opsiyonel) innerRatio: Kare çerçeveler için tek değer (geriye uyumluluk)
   //
   // Çerçeve mantığı:
   // - Eser alanı merkezdedir
   // - Paspartu varsa, iç kenarı eserin 2mm üzerine biner, dışa doğru büyür
-  // - Çerçevenin iç kenarı paspartunun/eserin 2mm üzerine biner
+  // - Çerçevenin iç kenarı paspartunun/eserin 2mm üzerine biner (overlapMM)
   // - Çerçevenin altında hiçbir şey görünmez (transparent PNG sayesinde)
+  //
+  // innerRatio nasıl hesaplanır:
+  // 1. Çerçeve görselinin dış boyutlarını ölç (örn: 759 x 651 px)
+  // 2. İç boşluk (transparent alan) boyutlarını ölç (örn: 571 x 464 px)
+  // 3. innerRatioX = 571 / 759 = 0.752
+  // 4. innerRatioY = 464 / 651 = 0.713
   const FRAME_DATA = {
     "GD154-4313-BA": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp",
-      innerRatio: 0.78   // Kalın çerçeve - iç boşluk %78
+      innerRatioX: 0.78,  // Kalın çerçeve
+      innerRatioY: 0.78
     },
     "GD154-3427-BA": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/5bc0e7d1-c8c9-451b-98c8-f0412188e500/image_1080.webp",
-      innerRatio: 0.78   // Kalın çerçeve - iç boşluk %78
+      innerRatioX: 0.78,  // Kalın çerçeve
+      innerRatioY: 0.78
     },
     "GB139-1211T": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/48479c0b-c501-4ee3-83b7-a2f061493c91/image_1080.webp",
-      innerRatio: 0.92   // Çok ince çerçeve - iç boşluk %92
+      innerRatioX: 0.92,  // Çok ince çerçeve
+      innerRatioY: 0.92
     },
     // Yeni çerçeveler buraya eklenecek:
     // "SKU-KODU": {
     //   url: "https://cdn.../gorsel-transparent.png",
-    //   innerRatio: 0.80  // İç boşluk oranı (ölçerek belirle)
+    //   innerRatioX: 0.752,  // iç genişlik / dış genişlik
+    //   innerRatioY: 0.713   // iç yükseklik / dış yükseklik
     // },
   };
 
-  // Çerçeve verilerini SKU'dan al (url ve innerRatio)
+  // Çerçeve verilerini SKU'dan al (url ve innerRatioX/Y)
   function getFrameData() {
     const sku = getProductSku();
     if (!sku) return null;
@@ -1678,7 +1690,11 @@
     // Gerçek çerçeve görseli kontrolü
     const frameData = getFrameData();
     const realFrameUrl = frameData ? frameData.url : null;
-    const innerRatio = frameData ? (frameData.innerRatio || 0.78) : 0.78;
+    // innerRatioX ve innerRatioY ayrı ayrı (dikdörtgen çerçeve desteği)
+    // Geriye uyumluluk: innerRatio varsa X ve Y için kullan
+    const defaultRatio = 0.78;
+    const innerRatioX = frameData ? (frameData.innerRatioX || frameData.innerRatio || defaultRatio) : defaultRatio;
+    const innerRatioY = frameData ? (frameData.innerRatioY || frameData.innerRatio || defaultRatio) : defaultRatio;
     const hasRealFrame = !!realFrameUrl;
 
     const boxW = box.clientWidth;
@@ -1714,10 +1730,11 @@
         if (hasRealFrame) {
           frameWrapper.classList.add("has-real-frame");
           frameImage.style.display = "block";
-          // İç alan 140x140, çerçeve boyutu = 140 / innerRatio
-          const frameSize = Math.round(140 / innerRatio);
-          frameImage.style.width = `${frameSize}px`;
-          frameImage.style.height = `${frameSize}px`;
+          // İç alan 140x140, çerçeve boyutu = 140 / innerRatio (X ve Y ayrı)
+          const frameSizeW = Math.round(140 / innerRatioX);
+          const frameSizeH = Math.round(140 / innerRatioY);
+          frameImage.style.width = `${frameSizeW}px`;
+          frameImage.style.height = `${frameSizeH}px`;
           frameImg.src = realFrameUrl;
         } else {
           frameWrapper.classList.remove("has-real-frame");
@@ -1756,13 +1773,14 @@
     const totalH = Math.max(STATE.totalHMM, STATE.artHMM);
 
     // Önce içerik boyutunu hesapla (çerçeve olmadan)
-    // Çerçeve innerRatio ile hesaplanacak
+    // Çerçeve innerRatioX/Y ile hesaplanacak (dikdörtgen çerçeve desteği)
     const contentWMM = totalW; // Paspartu dahil içerik genişliği (mm)
     const contentHMM = totalH; // Paspartu dahil içerik yüksekliği (mm)
 
     // Çerçeve dış boyutu (mm) = içerik / innerRatio
-    const frameOuterWMM = contentWMM / innerRatio;
-    const frameOuterHMM = contentHMM / innerRatio;
+    // X ve Y için ayrı ratio kullanılıyor
+    const frameOuterWMM = contentWMM / innerRatioX;
+    const frameOuterHMM = contentHMM / innerRatioY;
 
     // Ölçekleme - çerçeve dahil tüm yapı preview alanına sığmalı
     const scale = Math.min(availW / frameOuterWMM, availH / frameOuterHMM);
