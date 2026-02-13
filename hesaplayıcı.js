@@ -69,47 +69,52 @@
     ]
   };
 
-  // ========== ÇERÇEVE GÖRSELLERİ (SKU -> URL ve innerRatio) ==========
-  // YENİ SİSTEM: Çerçeve resimleri ortası transparent PNG olmalı
+  // ========== ÇERÇEVE GÖRSELLERİ (SKU -> URL ve border-image-slice) ==========
+  // YENİ SİSTEM: CSS border-image-slice ile çerçeve rendering
+  // Bu yöntemde köşeler asla deforme olmaz, sadece kenarlar esner
+  //
   // Her çerçeve modeli için:
-  // - url: Transparent PNG görsel linki (ortası saydam)
-  // - innerRatioX: Yatay iç boşluk oranı (iç genişlik / dış genişlik)
-  // - innerRatioY: Dikey iç boşluk oranı (iç yükseklik / dış yükseklik)
-  // - (opsiyonel) innerRatio: Kare çerçeveler için tek değer (geriye uyumluluk)
+  // - url: Çerçeve görsel linki (PNG veya WebP)
+  // - slice: Köşe kesim değeri (px) - görselin kenarından ölçülen
+  // - borderWidth: Çerçeve kalınlığı (mm) - gerçek fiziksel kalınlık
+  // - (opsiyonel) sliceTop, sliceRight, sliceBottom, sliceLeft: Farklı kenarlar için
   //
-  // Çerçeve mantığı:
-  // - Eser alanı merkezdedir
-  // - Paspartu varsa, iç kenarı eserin 2mm üzerine biner, dışa doğru büyür
-  // - Çerçevenin iç kenarı paspartunun/eserin 2mm üzerine biner (overlapMM)
-  // - Çerçevenin altında hiçbir şey görünmez (transparent PNG sayesinde)
+  // Çerçeve mantığı (border-image-slice):
+  // 1. Görsel 9 parçaya bölünür (4 köşe + 4 kenar + merkez)
+  // 2. Köşeler sabit kalır (deforme olmaz)
+  // 3. Kenarlar sadece uzunluk yönünde esner
+  // 4. Merkez (fill) içerik alanını kaplar
   //
-  // innerRatio nasıl hesaplanır:
+  // slice nasıl hesaplanır:
   // 1. Çerçeve görselinin dış boyutlarını ölç (örn: 759 x 651 px)
-  // 2. İç boşluk (transparent alan) boyutlarını ölç (örn: 571 x 464 px)
-  // 3. innerRatioX = 571 / 759 = 0.752
-  // 4. innerRatioY = 464 / 651 = 0.713
+  // 2. Kenar kalınlığını ölç (görsel px cinsinden)
+  //    Yatay kenar: (759 - 571) / 2 = 94 px
+  //    Dikey kenar: (651 - 464) / 2 = 93.5 px
+  // 3. En büyük değeri slice olarak kullan: 94
+  // 4. borderWidth = gerçek çerçeve kalınlığı mm cinsinden
   const FRAME_DATA = {
     "GD154-4313-BA": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp",
       // Görsel: 759 x 651 px, İç alan: 571 x 464 px
-      innerRatioX: 0.752,  // 571 / 759
-      innerRatioY: 0.713   // 464 / 651
+      // Kenar: (759-571)/2 = 94px, (651-464)/2 = 93.5px
+      slice: 94,           // Köşe kesim (px)
+      borderWidth: 30      // Çerçeve kalınlığı (mm)
     },
     "GD154-3427-BA": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/5bc0e7d1-c8c9-451b-98c8-f0412188e500/image_1080.webp",
-      innerRatioX: 0.78,  // Kalın çerçeve
-      innerRatioY: 0.78
+      slice: 80,           // Kalın çerçeve
+      borderWidth: 35
     },
     "GB139-1211T": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/48479c0b-c501-4ee3-83b7-a2f061493c91/image_1080.webp",
-      innerRatioX: 0.92,  // Çok ince çerçeve
-      innerRatioY: 0.92
+      slice: 40,           // İnce çerçeve
+      borderWidth: 15
     },
     // Yeni çerçeveler buraya eklenecek:
     // "SKU-KODU": {
-    //   url: "https://cdn.../gorsel-transparent.png",
-    //   innerRatioX: 0.752,  // iç genişlik / dış genişlik
-    //   innerRatioY: 0.713   // iç yükseklik / dış yükseklik
+    //   url: "https://cdn.../gorsel.png",
+    //   slice: 94,         // Köşe kesim (px) - görsel üzerinden ölçülür
+    //   borderWidth: 30    // Çerçeve kalınlığı (mm)
     // },
   };
 
@@ -815,7 +820,7 @@
         animation: olga-shimmer 2s infinite;
       }
 
-      /* ========== FRAME PREVIEW ========== */
+      /* ========== FRAME PREVIEW (border-image-slice yöntemi) ========== */
       .olga-frame-wrapper {
         position: relative;
         display: flex;
@@ -823,39 +828,19 @@
         justify-content: center;
       }
 
-      /* Gerçek çerçeve görseli (PNG overlay - ortası transparent) */
-      .olga-frame-image {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        box-sizing: border-box;
-        z-index: 10;
-        pointer-events: none;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        transition: width 0.35s ease-out, height 0.35s ease-out;
-        /* Çerçevenin altında hiçbir şey görünmesin - transparent PNG kullanılacak */
-        background: transparent;
-      }
-
-      /* Çerçeve img elementi için */
-      .olga-frame-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: fill;
-        display: block;
-      }
-
-      /* İçerik katmanı (paspartu + eser) */
+      /* İçerik katmanı - border-image ile çerçeve uygulanır */
       .olga-frame{
         background: transparent;
         display:flex;
         align-items:center;
         justify-content:center;
         box-sizing:border-box;
-        transition: width 0.35s ease-out, height 0.35s ease-out;
+        transition: width 0.35s ease-out, height 0.35s ease-out, border-width 0.35s ease-out;
         position: relative;
         z-index: 1;
+        /* border-image varsayılan değerleri */
+        border-style: solid;
+        border-color: transparent;
       }
 
       /* Çerçeve görseli yoksa fallback */
@@ -863,17 +848,22 @@
         background: #2d2d2d;
         padding: 15px;
         box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        border-width: 0 !important;
+        border-image: none !important;
       }
 
-      /* Gerçek çerçeve görselinde - içerik katmanı transparent, gölge yok */
+      /* Gerçek çerçeve varken - border-image aktif */
       .olga-frame-wrapper.has-real-frame .olga-frame {
         background: transparent !important;
-        box-shadow: none !important;
         padding: 0 !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        /* border-image JS tarafından dinamik olarak ayarlanır */
       }
 
-      /* Gerçek çerçeve varken - paspartu ve bevel normal görünsün */
-      /* Çerçevenin transparent iç alanından içerik görünür */
+      /* Eski overlay sistemi - artık kullanılmıyor ama geriye uyumluluk için */
+      .olga-frame-image {
+        display: none !important;
+      }
 
 
       /* Dış Paspartu */
@@ -1178,10 +1168,7 @@
               <!-- Cam efekti (içeriğin üstünde, çerçevenin altında) -->
               <div class="olga-glass" id="olga_glass" style="display:none"></div>
             </div>
-            <!-- Gerçek çerçeve görseli (PNG overlay - ortası transparent, en üstte) -->
-            <div class="olga-frame-image" id="olga_frame_image" style="display:none;">
-              <img id="olga_frame_img" src="" alt="Çerçeve" />
-            </div>
+            <!-- border-image-slice yöntemi kullanılıyor, overlay artık gerekli değil -->
           </div>
         </div>
         <div class="olga-note" id="olga_preview_note">Ölçü girince canlı olarak güncellenir.</div>
@@ -1683,20 +1670,20 @@
     const note = document.getElementById("olga_preview_note");
     const box = document.querySelector("#olga_preview_card .olga-preview-box");
     const frameWrapper = document.getElementById("olga_frame_wrapper");
-    const frameImage = document.getElementById("olga_frame_image");
-    const frameImg = document.getElementById("olga_frame_img");
+    // frameImage ve frameImg artık kullanılmıyor (border-image-slice yöntemi)
 
     if (!frame || !matOuter || !bevelOuter || !box) return;
 
-    // Gerçek çerçeve görseli kontrolü
+    // Gerçek çerçeve görseli kontrolü (border-image-slice yöntemi)
     const frameData = getFrameData();
     const realFrameUrl = frameData ? frameData.url : null;
-    // innerRatioX ve innerRatioY ayrı ayrı (dikdörtgen çerçeve desteği)
-    // Geriye uyumluluk: innerRatio varsa X ve Y için kullan
-    const defaultRatio = 0.78;
-    const innerRatioX = frameData ? (frameData.innerRatioX || frameData.innerRatio || defaultRatio) : defaultRatio;
-    const innerRatioY = frameData ? (frameData.innerRatioY || frameData.innerRatio || defaultRatio) : defaultRatio;
     const hasRealFrame = !!realFrameUrl;
+
+    // border-image-slice değerleri
+    const defaultSlice = 80;        // Varsayılan köşe kesimi (px)
+    const defaultBorderWidth = 25;  // Varsayılan çerçeve kalınlığı (mm)
+    const frameSlice = frameData ? (frameData.slice || defaultSlice) : defaultSlice;
+    const frameBorderWidthMM = frameData ? (frameData.borderWidth || defaultBorderWidth) : defaultBorderWidth;
 
     const boxW = box.clientWidth;
     const boxH = box.clientHeight;
@@ -1726,20 +1713,20 @@
       frame.style.padding = "0px";
       frame.style.background = "transparent";
 
-      // Gerçek çerçeve görseli (varsayılan durumda)
-      if (frameWrapper && frameImage && frameImg) {
+      // Gerçek çerçeve görseli (varsayılan durumda) - border-image-slice
+      if (frameWrapper) {
         if (hasRealFrame) {
           frameWrapper.classList.add("has-real-frame");
-          frameImage.style.display = "block";
-          // İç alan 140x140, çerçeve boyutu = 140 / innerRatio (X ve Y ayrı)
-          const frameSizeW = Math.round(140 / innerRatioX);
-          const frameSizeH = Math.round(140 / innerRatioY);
-          frameImage.style.width = `${frameSizeW}px`;
-          frameImage.style.height = `${frameSizeH}px`;
-          frameImg.src = realFrameUrl;
+          // Varsayılan önizlemede sabit 25px border
+          const defaultBorderPx = 25;
+          frame.style.borderWidth = `${defaultBorderPx}px`;
+          frame.style.borderImageSource = `url(${realFrameUrl})`;
+          frame.style.borderImageSlice = `${frameSlice} fill`;
+          frame.style.borderImageRepeat = "stretch";
         } else {
           frameWrapper.classList.remove("has-real-frame");
-          frameImage.style.display = "none";
+          frame.style.borderWidth = "0";
+          frame.style.borderImageSource = "none";
         }
       }
 
@@ -1760,28 +1747,26 @@
       return;
     }
 
-    // ========== YENİ SİSTEM: Eser merkezli render ==========
+    // ========== YENİ SİSTEM: border-image-slice ile çerçeve render ==========
     // 1. Eser boyutu sabittir (kullanıcı girişi)
     // 2. Paspartu varsa, iç kenarı eserin 2mm üzerine biner, dışa doğru büyür
-    // 3. Çerçevenin iç kenarı paspartunun/eserin 2mm üzerine biner
+    // 3. Çerçeve border-image olarak uygulanır (köşeler deforme olmaz)
 
     const safePad = 10;
     const availW = Math.max(90, boxW - safePad * 2);
     const availH = Math.max(90, boxH - safePad * 2);
 
-    // Toplam boyut (mm) - eser + paspartu + çerçeve
+    // Toplam boyut (mm) - eser + paspartu (çerçeve hariç)
     const totalW = Math.max(STATE.totalWMM, STATE.artWMM);
     const totalH = Math.max(STATE.totalHMM, STATE.artHMM);
 
-    // Önce içerik boyutunu hesapla (çerçeve olmadan)
-    // Çerçeve innerRatioX/Y ile hesaplanacak (dikdörtgen çerçeve desteği)
-    const contentWMM = totalW; // Paspartu dahil içerik genişliği (mm)
-    const contentHMM = totalH; // Paspartu dahil içerik yüksekliği (mm)
+    // İçerik boyutu (çerçeve olmadan, paspartu dahil)
+    const contentWMM = totalW;
+    const contentHMM = totalH;
 
-    // Çerçeve dış boyutu (mm) = içerik / innerRatio
-    // X ve Y için ayrı ratio kullanılıyor
-    const frameOuterWMM = contentWMM / innerRatioX;
-    const frameOuterHMM = contentHMM / innerRatioY;
+    // Çerçeve dış boyutu (mm) = içerik + çerçeve kalınlığı * 2
+    const frameOuterWMM = contentWMM + (frameBorderWidthMM * 2);
+    const frameOuterHMM = contentHMM + (frameBorderWidthMM * 2);
 
     // Ölçekleme - çerçeve dahil tüm yapı preview alanına sığmalı
     const scale = Math.min(availW / frameOuterWMM, availH / frameOuterHMM);
@@ -1789,34 +1774,32 @@
     // Piksel değerleri
     const contentW = Math.max(30, contentWMM * scale);
     const contentH = Math.max(30, contentHMM * scale);
-    const frameOuterW = Math.round(frameOuterWMM * scale);
-    const frameOuterH = Math.round(frameOuterHMM * scale);
+    const borderWidthPx = Math.round(frameBorderWidthMM * scale); // Çerçeve kalınlığı (px)
     const overlapPx = Math.max(2, overlapMM * scale); // En az 2px overlap
 
-    // İçerik alanı (olga-frame) boyutları - overlap dahil
-    // Çerçevenin iç kenarı bu alanın üzerine binecek
+    // İçerik alanı (olga-frame) boyutları
+    // border-image-slice'da bu content alanıdır, border dışarı eklenir
     frame.style.width = `${contentW}px`;
     frame.style.height = `${contentH}px`;
     frame.style.padding = "0px";
     frame.style.background = "transparent";
 
-    // ========== GERÇEK ÇERÇEVE GÖRSELİ (PNG overlay) ==========
-    if (frameWrapper && frameImage && frameImg) {
+    // ========== GERÇEK ÇERÇEVE GÖRSELİ (border-image-slice) ==========
+    if (frameWrapper) {
       if (hasRealFrame) {
         frameWrapper.classList.add("has-real-frame");
-        frameImage.style.display = "block";
 
-        // Çerçeve PNG boyutu
-        frameImage.style.width = `${frameOuterW}px`;
-        frameImage.style.height = `${frameOuterH}px`;
-        frameImg.src = realFrameUrl;
-
-        // Çerçevenin iç kenarı içeriğin overlapPx üzerine binecek
-        // Bu transparent PNG sayesinde otomatik olur
+        // border-image-slice ile çerçeve uygula
+        // Köşeler sabit kalır, kenarlar esnek şekilde esner
+        frame.style.borderWidth = `${borderWidthPx}px`;
+        frame.style.borderImageSource = `url(${realFrameUrl})`;
+        frame.style.borderImageSlice = `${frameSlice} fill`;
+        frame.style.borderImageRepeat = "stretch";
       } else {
         frameWrapper.classList.remove("has-real-frame");
-        frameImage.style.display = "none";
         // Fallback: çerçeve görseli yoksa basit border göster
+        frame.style.borderWidth = "0";
+        frame.style.borderImageSource = "none";
         frame.style.background = "#2d2d2d";
         frame.style.padding = "15px";
       }

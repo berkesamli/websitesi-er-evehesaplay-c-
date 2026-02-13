@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Çerçeve Test - Dışa Büyüme</title>
+  <title>Çerçeve Test - border-image-slice</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -81,18 +81,18 @@
       text-align: center;
     }
     .preview-box h3 { margin-bottom: 20px; color: #94bbe9; }
-    .frame-wrapper {
-      position: relative;
-      display: inline-block;
+
+    /* border-image-slice çerçeve stili */
+    .frame-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-style: solid;
+      border-color: transparent;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     }
-    .frame-img {
-      display: block;
-      object-fit: fill;
-      position: relative;
-      z-index: 2;
-    }
+
     .content-area {
-      position: absolute;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       display: flex;
       align-items: center;
@@ -101,14 +101,17 @@
       font-size: 12px;
       font-weight: bold;
       text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-      overflow: hidden;
-      z-index: 1;
+      width: 100%;
+      height: 100%;
     }
+
     .paspartu-area {
-      position: absolute;
       background: #f5f5dc;
-      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+
     .info-panel {
       background: #0f3460;
       padding: 15px 20px;
@@ -120,8 +123,7 @@
     }
     .highlight { color: #ffd700; font-weight: bold; }
     .highlight-green { color: #00ff88; font-weight: bold; }
-    .highlight-x { color: #00d4ff; font-weight: bold; }
-    .highlight-y { color: #ff6b6b; font-weight: bold; }
+    .highlight-cyan { color: #00d4ff; font-weight: bold; }
     .btn {
       background: #e94560;
       color: #fff;
@@ -149,46 +151,55 @@
       font-size: 12px;
       border-radius: 0 8px 8px 0;
     }
+    .advantage-list {
+      background: rgba(0, 255, 136, 0.1);
+      border-left: 3px solid #00ff88;
+      padding: 10px 15px;
+      margin-top: 15px;
+      font-size: 12px;
+      border-radius: 0 8px 8px 0;
+    }
+    .advantage-list li { margin: 5px 0; }
   </style>
 </head>
 <body>
-  <h1>Çerçeve Test Sayfası</h1>
-  <p class="subtitle">Eser Sabit - Paspartu/Çerçeve Dışa Büyür</p>
+  <h1>border-image-slice Çerçeve Test</h1>
+  <p class="subtitle">Köşeler Sabit - Kenarlar Esnek</p>
 
   <div class="controls">
     <div class="control-section">
-      <div class="section-title">Eser Boyutu (Sabit - mm)</div>
+      <div class="section-title">İçerik Boyutu (mm)</div>
       <div class="control-row">
-        <label>Eser Genişliği:</label>
-        <input type="number" id="artWidth" min="50" max="1000" value="200">
+        <label>İçerik Genişliği:</label>
+        <input type="number" id="contentWidth" min="50" max="1000" value="200">
         <span>mm</span>
       </div>
       <div class="control-row">
-        <label>Eser Yüksekliği:</label>
-        <input type="number" id="artHeight" min="50" max="1000" value="150">
+        <label>İçerik Yüksekliği:</label>
+        <input type="number" id="contentHeight" min="50" max="1000" value="150">
         <span>mm</span>
       </div>
     </div>
 
     <div class="control-section">
-      <div class="section-title">Paspartu ve Çerçeve</div>
+      <div class="section-title">Çerçeve Ayarları</div>
+      <div class="control-row">
+        <label>Çerçeve Kalınlığı:</label>
+        <input type="number" id="borderWidthMM" min="10" max="100" value="30">
+        <span>mm</span>
+      </div>
+      <div class="control-row">
+        <label>Slice Değeri:</label>
+        <input type="number" id="sliceValue" min="10" max="200" value="94">
+        <span>px (görsel kesimi)</span>
+      </div>
       <div class="control-row">
         <label>Paspartu Kalınlığı:</label>
-        <input type="number" id="paspartuMM" min="0" max="100" value="30">
+        <input type="number" id="paspartuMM" min="0" max="100" value="0">
         <span>mm</span>
-      </div>
-      <div class="control-row">
-        <label>Çerçeve Kenar:</label>
-        <input type="number" id="frameBorderMM" min="10" max="150" value="50">
-        <span>mm</span>
-      </div>
-      <div class="control-row">
-        <label>Çerçeve Örtüşme:</label>
-        <input type="number" id="overlapMM" min="0" max="10" value="2">
-        <span>mm (çerçeve dudağı)</span>
       </div>
       <div class="note">
-        <strong>Çerçeve Örtüşme:</strong> Çerçevenin iç kenarı paspartuyu bu kadar örter. Gerçek çerçevelerde genellikle 2mm.
+        <strong>Slice Değeri:</strong> Çerçeve görselinin köşe kesim noktası (px). Görsel 9 parçaya bölünür - köşeler sabit kalır, kenarlar esner.
       </div>
     </div>
 
@@ -196,25 +207,34 @@
       <div class="section-title">Önizleme Ayarları</div>
       <div class="control-row">
         <label>Önizleme Ölçeği:</label>
-        <input type="range" id="scaleSlider" min="0.5" max="2" step="0.1" value="1">
-        <span class="value-display" id="scaleValue">1x</span>
+        <input type="range" id="scaleSlider" min="0.3" max="1.5" step="0.1" value="0.8">
+        <span class="value-display" id="scaleValue">0.8x</span>
       </div>
     </div>
 
     <div class="control-section">
       <div class="section-title">Çerçeve Görseli URL</div>
       <div class="control-row">
-        <input type="text" id="frameUrl" placeholder="Çerçeve PNG/JPG URL'si girin...">
+        <input type="text" id="frameUrl" value="https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp" placeholder="Çerçeve PNG/JPG URL'si girin...">
       </div>
       <button class="btn" onclick="loadFrame()">Görseli Yükle</button>
+    </div>
+
+    <div class="advantage-list">
+      <strong>border-image-slice Avantajları:</strong>
+      <ul>
+        <li>Köşeler asla deforme olmaz</li>
+        <li>Kenarlar sadece uzunluk yönünde esner</li>
+        <li>Her boyutta doğru görünüm</li>
+        <li>Daha az hesaplama, daha iyi performans</li>
+      </ul>
     </div>
   </div>
 
   <div class="preview-container">
     <div class="preview-box">
       <h3>Paspartusuz</h3>
-      <div class="frame-wrapper" id="wrapper1">
-        <img class="frame-img" id="frameImg1" src="">
+      <div class="frame-content" id="frame1">
         <div class="content-area" id="content1">ESER</div>
       </div>
       <div class="info-panel" id="info1"></div>
@@ -222,8 +242,7 @@
 
     <div class="preview-box">
       <h3>Paspartulu</h3>
-      <div class="frame-wrapper" id="wrapper2">
-        <img class="frame-img" id="frameImg2" src="">
+      <div class="frame-content" id="frame2">
         <div class="paspartu-area" id="paspartu2">
           <div class="content-area" id="content2">ESER</div>
         </div>
@@ -239,135 +258,109 @@
 
   <script>
     // Elementler
-    const artWidthInput = document.getElementById('artWidth');
-    const artHeightInput = document.getElementById('artHeight');
+    const contentWidthInput = document.getElementById('contentWidth');
+    const contentHeightInput = document.getElementById('contentHeight');
+    const borderWidthMMInput = document.getElementById('borderWidthMM');
+    const sliceValueInput = document.getElementById('sliceValue');
     const paspartuMMInput = document.getElementById('paspartuMM');
-    const frameBorderMMInput = document.getElementById('frameBorderMM');
-    const overlapMMInput = document.getElementById('overlapMM');
     const scaleSlider = document.getElementById('scaleSlider');
     const frameUrlInput = document.getElementById('frameUrl');
-    const scaleValue = document.getElementById('scaleValue');
+    const scaleValueDisplay = document.getElementById('scaleValue');
 
-    let currentFrameUrl = '';
+    let currentFrameUrl = frameUrlInput.value;
 
     function loadFrame() {
       const url = frameUrlInput.value.trim();
       if (url) {
         currentFrameUrl = url;
-        document.getElementById('frameImg1').src = url;
-        document.getElementById('frameImg2').src = url;
         updatePreview();
       }
     }
 
     function updatePreview() {
       // Değerleri al (mm cinsinden)
-      const artW = parseFloat(artWidthInput.value) || 200;
-      const artH = parseFloat(artHeightInput.value) || 150;
+      const contentW = parseFloat(contentWidthInput.value) || 200;
+      const contentH = parseFloat(contentHeightInput.value) || 150;
+      const borderWidthMM = parseFloat(borderWidthMMInput.value) || 30;
+      const sliceValue = parseInt(sliceValueInput.value) || 94;
       const paspartuMM = parseFloat(paspartuMMInput.value) || 0;
-      const frameBorderMM = parseFloat(frameBorderMMInput.value) || 50;
-      const overlapMM = parseFloat(overlapMMInput.value) || 2;
       const scale = parseFloat(scaleSlider.value);
 
-      scaleValue.textContent = scale + 'x';
+      scaleValueDisplay.textContent = scale + 'x';
 
-      // mm'den px'e dönüşüm (1mm = 1px önizlemede, sonra scale ile çarpılacak)
+      // mm'den px'e dönüşüm
       const pxPerMM = 1 * scale;
 
       // === PASPARTUSUZ HESAPLAMA ===
-      // Çerçeve örtüşme nedeniyle görünen eser alanı küçülür
-      const visibleArtW1 = artW - (overlapMM * 2);
-      const visibleArtH1 = artH - (overlapMM * 2);
+      const previewContentW1 = contentW * pxPerMM;
+      const previewContentH1 = contentH * pxPerMM;
+      const previewBorderW1 = borderWidthMM * pxPerMM;
 
-      // Çerçeve toplam boyutu (paspartusuz)
-      const frameW1 = artW + (frameBorderMM * 2) - (overlapMM * 2);
-      const frameH1 = artH + (frameBorderMM * 2) - (overlapMM * 2);
-
-      // innerRatio hesapla (paspartusuz)
-      const innerRatioX1 = visibleArtW1 / frameW1;
-      const innerRatioY1 = visibleArtH1 / frameH1;
-
-      // Önizleme px değerleri
-      const previewFrameW1 = frameW1 * pxPerMM;
-      const previewFrameH1 = frameH1 * pxPerMM;
-      const previewVisibleW1 = visibleArtW1 * pxPerMM;
-      const previewVisibleH1 = visibleArtH1 * pxPerMM;
-      const previewBorder1 = (frameBorderMM - overlapMM) * pxPerMM;
-
-      // Paspartusuz önizleme uygula
-      const frameImg1 = document.getElementById('frameImg1');
-      frameImg1.style.width = previewFrameW1 + 'px';
-      frameImg1.style.height = previewFrameH1 + 'px';
-
+      // Paspartusuz çerçeve uygula
+      const frame1 = document.getElementById('frame1');
       const content1 = document.getElementById('content1');
-      content1.style.width = previewVisibleW1 + 'px';
-      content1.style.height = previewVisibleH1 + 'px';
-      content1.style.top = previewBorder1 + 'px';
-      content1.style.left = previewBorder1 + 'px';
+
+      // İçerik boyutu (border'ın içi)
+      frame1.style.width = `${previewContentW1}px`;
+      frame1.style.height = `${previewContentH1}px`;
+
+      // border-image-slice uygula
+      frame1.style.borderWidth = `${previewBorderW1}px`;
+      frame1.style.borderImageSource = `url(${currentFrameUrl})`;
+      frame1.style.borderImageSlice = `${sliceValue} fill`;
+      frame1.style.borderImageRepeat = 'stretch';
+
+      // Çerçeve dış boyutu
+      const frameOuterW1 = contentW + (borderWidthMM * 2);
+      const frameOuterH1 = contentH + (borderWidthMM * 2);
 
       document.getElementById('info1').innerHTML = `
-        <span class="highlight">Eser:</span> ${artW} x ${artH} mm<br>
-        <span class="highlight">Görünen Eser:</span> ${visibleArtW1} x ${visibleArtH1} mm<br>
-        <span class="highlight">Çerçeve Dış:</span> ${frameW1} x ${frameH1} mm<br>
-        <span class="highlight-x">innerRatioX:</span> ${innerRatioX1.toFixed(3)}<br>
-        <span class="highlight-y">innerRatioY:</span> ${innerRatioY1.toFixed(3)}
+        <span class="highlight">İçerik:</span> ${contentW} x ${contentH} mm<br>
+        <span class="highlight">Çerçeve Kalınlığı:</span> ${borderWidthMM} mm<br>
+        <span class="highlight-green">Çerçeve Dış:</span> ${frameOuterW1} x ${frameOuterH1} mm<br>
+        <span class="highlight-cyan">Slice:</span> ${sliceValue}px
       `;
 
       // === PASPARTULU HESAPLAMA ===
-      // Paspartu iç alan = eser boyutu (örtüşme çıkarılmadan önce)
-      // Paspartu dış alan = eser + paspartu
-      const paspartuInnerW = artW;
-      const paspartuInnerH = artH;
-      const paspartuOuterW = artW + (paspartuMM * 2);
-      const paspartuOuterH = artH + (paspartuMM * 2);
+      const innerContentW = contentW;
+      const innerContentH = contentH;
+      const totalContentW = contentW + (paspartuMM * 2);
+      const totalContentH = contentH + (paspartuMM * 2);
 
-      // Görünen paspartu alanı (çerçeve örtüşmesi düşülür)
-      const visiblePaspartuW = paspartuOuterW - (overlapMM * 2);
-      const visiblePaspartuH = paspartuOuterH - (overlapMM * 2);
+      const previewTotalW2 = totalContentW * pxPerMM;
+      const previewTotalH2 = totalContentH * pxPerMM;
+      const previewBorderW2 = borderWidthMM * pxPerMM;
+      const previewInnerW2 = innerContentW * pxPerMM;
+      const previewInnerH2 = innerContentH * pxPerMM;
 
-      // Çerçeve toplam boyutu (paspartulu)
-      const frameW2 = paspartuOuterW + (frameBorderMM * 2) - (overlapMM * 2);
-      const frameH2 = paspartuOuterH + (frameBorderMM * 2) - (overlapMM * 2);
-
-      // innerRatio hesapla (paspartulu - görünen paspartu alanı)
-      const innerRatioX2 = visiblePaspartuW / frameW2;
-      const innerRatioY2 = visiblePaspartuH / frameH2;
-
-      // Önizleme px değerleri
-      const previewFrameW2 = frameW2 * pxPerMM;
-      const previewFrameH2 = frameH2 * pxPerMM;
-      const previewPaspartuW = visiblePaspartuW * pxPerMM;
-      const previewPaspartuH = visiblePaspartuH * pxPerMM;
-      const previewBorder2 = (frameBorderMM - overlapMM) * pxPerMM;
-      const previewArtW2 = (artW - (overlapMM * 2)) * pxPerMM; // Görünen eser
-      const previewArtH2 = (artH - (overlapMM * 2)) * pxPerMM;
-      const previewPaspartuThickness = paspartuMM * pxPerMM;
-
-      // Paspartulu önizleme uygula
-      const frameImg2 = document.getElementById('frameImg2');
-      frameImg2.style.width = previewFrameW2 + 'px';
-      frameImg2.style.height = previewFrameH2 + 'px';
-
+      const frame2 = document.getElementById('frame2');
       const paspartu2 = document.getElementById('paspartu2');
-      paspartu2.style.width = previewPaspartuW + 'px';
-      paspartu2.style.height = previewPaspartuH + 'px';
-      paspartu2.style.top = previewBorder2 + 'px';
-      paspartu2.style.left = previewBorder2 + 'px';
-
       const content2 = document.getElementById('content2');
-      content2.style.position = 'absolute';
-      content2.style.width = previewArtW2 + 'px';
-      content2.style.height = previewArtH2 + 'px';
-      // Eser, paspartunun içinde ortalanmalı - örtüşme düşülerek
-      content2.style.top = (paspartuMM - overlapMM) * pxPerMM + 'px';
-      content2.style.left = (paspartuMM - overlapMM) * pxPerMM + 'px';
+
+      // İçerik boyutu (paspartu dahil)
+      frame2.style.width = `${previewTotalW2}px`;
+      frame2.style.height = `${previewTotalH2}px`;
+
+      // border-image-slice uygula
+      frame2.style.borderWidth = `${previewBorderW2}px`;
+      frame2.style.borderImageSource = `url(${currentFrameUrl})`;
+      frame2.style.borderImageSlice = `${sliceValue} fill`;
+      frame2.style.borderImageRepeat = 'stretch';
+
+      // Paspartu ve içerik
+      paspartu2.style.width = '100%';
+      paspartu2.style.height = '100%';
+      paspartu2.style.padding = `${paspartuMM * pxPerMM}px`;
+
+      // Çerçeve dış boyutu
+      const frameOuterW2 = totalContentW + (borderWidthMM * 2);
+      const frameOuterH2 = totalContentH + (borderWidthMM * 2);
 
       document.getElementById('info2').innerHTML = `
-        <span class="highlight">Eser:</span> ${artW} x ${artH} mm<br>
+        <span class="highlight">Eser:</span> ${innerContentW} x ${innerContentH} mm<br>
         <span class="highlight">Paspartu:</span> ${paspartuMM} mm<br>
-        <span class="highlight-green">Çerçeve Dış:</span> ${frameW2.toFixed(1)} x ${frameH2.toFixed(1)} mm<br>
-        <span class="highlight-x">innerRatioX:</span> ${innerRatioX2.toFixed(3)}<br>
-        <span class="highlight-y">innerRatioY:</span> ${innerRatioY2.toFixed(3)}
+        <span class="highlight-green">Çerçeve Dış:</span> ${frameOuterW2} x ${frameOuterH2} mm<br>
+        <span class="highlight-cyan">Slice:</span> ${sliceValue}px
       `;
 
       // Genel hesaplama bilgisi
@@ -380,37 +373,35 @@
             <td><strong>Paspartulu (${paspartuMM}mm)</strong></td>
           </tr>
           <tr>
-            <td>Çerçeve Boyutu:</td>
-            <td>${frameW1} x ${frameH1} mm</td>
-            <td>${frameW2.toFixed(1)} x ${frameH2.toFixed(1)} mm</td>
+            <td>İçerik Boyutu:</td>
+            <td>${contentW} x ${contentH} mm</td>
+            <td>${totalContentW} x ${totalContentH} mm</td>
           </tr>
           <tr>
-            <td>Görünen İç Alan:</td>
-            <td>${visibleArtW1} x ${visibleArtH1} mm</td>
-            <td>${visiblePaspartuW.toFixed(1)} x ${visiblePaspartuH.toFixed(1)} mm</td>
+            <td>Çerçeve Dış Boyutu:</td>
+            <td>${frameOuterW1} x ${frameOuterH1} mm</td>
+            <td>${frameOuterW2} x ${frameOuterH2} mm</td>
           </tr>
           <tr>
-            <td>innerRatioX:</td>
-            <td><span class="highlight-x">${innerRatioX1.toFixed(3)}</span></td>
-            <td><span class="highlight-x">${innerRatioX2.toFixed(3)}</span></td>
+            <td>border-width (px):</td>
+            <td colspan="2" style="text-align:center">${previewBorderW1.toFixed(1)}px (scale: ${scale}x)</td>
           </tr>
           <tr>
-            <td>innerRatioY:</td>
-            <td><span class="highlight-y">${innerRatioY1.toFixed(3)}</span></td>
-            <td><span class="highlight-y">${innerRatioY2.toFixed(3)}</span></td>
+            <td>border-image-slice:</td>
+            <td colspan="2" style="text-align:center"><span class="highlight-cyan">${sliceValue} fill</span></td>
           </tr>
         </table>
         <br>
-        <span class="highlight">Çerçeve Örtüşme:</span> ${overlapMM}mm (her kenarda çerçeve paspartuyu bu kadar örter)
+        <span class="highlight">Not:</span> Ölçüleri değiştirdiğinizde köşelerin sabit kaldığını, sadece kenarların esediğini gözlemleyin.
       `;
     }
 
     // Event listeners
-    artWidthInput.addEventListener('input', updatePreview);
-    artHeightInput.addEventListener('input', updatePreview);
+    contentWidthInput.addEventListener('input', updatePreview);
+    contentHeightInput.addEventListener('input', updatePreview);
+    borderWidthMMInput.addEventListener('input', updatePreview);
+    sliceValueInput.addEventListener('input', updatePreview);
     paspartuMMInput.addEventListener('input', updatePreview);
-    frameBorderMMInput.addEventListener('input', updatePreview);
-    overlapMMInput.addEventListener('input', updatePreview);
     scaleSlider.addEventListener('input', updatePreview);
 
     // Enter ile URL yükleme
