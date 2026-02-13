@@ -73,7 +73,7 @@
   // Tek görsel yeterli - 9-slice ile tüm boyutlara uyum sağlar
   const FRAME_IMAGES = {
     "GD154-4313-BA": "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp",
-    "GD154-3427-BA": "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/38df280d-4910-4297-83b0-a54d42487bcb/image_1080.webp",
+    "GD154-3427-BA": "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/5bc0e7d1-c8c9-451b-98c8-f0412188e500/image_1080.webp",
     // Yeni çerçeveler buraya eklenecek:
     // "SKU-KODU": "https://cdn.../gorsel.webp",
   };
