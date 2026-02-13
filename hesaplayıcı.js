@@ -1750,6 +1750,9 @@
         const matColor = hasMat ? getMatPreviewBackground() : '#d0d0d0';
         frame.style.setProperty('--mat-color', matColor);
 
+        // İnce çerçevelerde dış kenar boşluk bırakabilir, frame'in arka planını da ayarla
+        frame.style.backgroundColor = matColor;
+
         // Çerçeve boyutları (aynı kalıyor)
         frameImage.style.width = `${contentW + frameBorderPx * 2}px`;
         frameImage.style.height = `${contentH + frameBorderPx * 2}px`;
