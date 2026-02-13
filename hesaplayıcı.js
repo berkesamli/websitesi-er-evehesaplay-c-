@@ -91,8 +91,9 @@
   const FRAME_DATA = {
     "GD154-4313-BA": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp",
-      innerRatioX: 0.78,  // Kalın çerçeve
-      innerRatioY: 0.78
+      // Görsel: 759 x 651 px, İç alan: 571 x 464 px
+      innerRatioX: 0.752,  // 571 / 759
+      innerRatioY: 0.713   // 464 / 651
     },
     "GD154-3427-BA": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/5bc0e7d1-c8c9-451b-98c8-f0412188e500/image_1080.webp",
