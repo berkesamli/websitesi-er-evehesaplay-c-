@@ -79,20 +79,24 @@
   const FRAME_DATA = {
     "GD154-4313-BA": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp",
-      slice: "15%"  // Kalın çerçeve
+      slice: "15%",      // Border-image slice
+      borderScale: 1.0   // Kalın çerçeve - tam kalınlık
     },
     "GD154-3427-BA": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/5bc0e7d1-c8c9-451b-98c8-f0412188e500/image_1080.webp",
-      slice: "8%"   // İnce çerçeve
+      slice: "8%",       // Border-image slice
+      borderScale: 1.0   // Kalın çerçeve - tam kalınlık
     },
     "GB139-1211T": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/48479c0b-c501-4ee3-83b7-a2f061493c91/image_1080.webp",
-      slice: "4%"   // Çok ince çerçeve
+      slice: "4%",       // Border-image slice
+      borderScale: 0.4   // Çok ince çerçeve - kalınlık azaltıldı
     },
     // Yeni çerçeveler buraya eklenecek:
     // "SKU-KODU": {
     //   url: "https://cdn.../gorsel.webp",
-    //   slice: "12%"  // Çerçeve kalınlığına göre ayarla
+    //   slice: "12%",     // Border-image slice
+    //   borderScale: 1.0  // Çerçeve kalınlık çarpanı (1.0=kalın, 0.5=ince)
     // },
   };
 
@@ -1657,6 +1661,7 @@
     const frameData = getFrameData();
     const realFrameUrl = frameData ? frameData.url : null;
     const frameSlice = frameData ? frameData.slice : "15%";
+    const frameBorderScale = frameData ? (frameData.borderScale || 1.0) : 1.0;
     const hasRealFrame = !!realFrameUrl;
 
     const boxW = box.clientWidth;
@@ -1723,8 +1728,9 @@
     const totalW = Math.max(STATE.totalWMM, STATE.artWMM);
     const totalH = Math.max(STATE.totalHMM, STATE.artHMM);
 
-    // Çerçeve kalınlığı - daha büyük görünsün
-    const frameBorderPx = Math.max(18, Math.min(30, Math.round(Math.min(availW, availH) * 0.12)));
+    // Çerçeve kalınlığı - her çerçeve modeline göre ayarlanır
+    const baseBorderPx = Math.max(18, Math.min(30, Math.round(Math.min(availW, availH) * 0.12)));
+    const frameBorderPx = Math.round(baseBorderPx * frameBorderScale);
     frame.style.padding = frameBorderPx + "px";
 
     const innerW = Math.max(40, availW - frameBorderPx * 2);
