@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Çerçeve Test - GD154-4313-BA</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #1a1a2e;
+      color: #fff;
+      padding: 30px;
+      min-height: 100vh;
+    }
+    h1 { text-align: center; margin-bottom: 20px; color: #ffd700; }
+    .controls {
+      background: #16213e;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 500px;
+      margin: 0 auto 30px;
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    label { min-width: 120px; font-weight: 500; }
+    input[type="range"] { flex: 1; }
+    input[type="number"] {
+      width: 80px;
+      padding: 8px;
+      border: none;
+      border-radius: 6px;
+      background: #0f3460;
+      color: #fff;
+      text-align: center;
+    }
+    .value-display {
+      background: #e94560;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+      min-width: 60px;
+      text-align: center;
+    }
+    .preview-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+    .preview-box {
+      background: #16213e;
+      padding: 30px;
+      border-radius: 16px;
+      text-align: center;
+    }
+    .preview-box h3 { margin-bottom: 20px; color: #94bbe9; }
+    .frame-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    .frame-img {
+      display: block;
+      width: var(--frame-size);
+      height: var(--frame-size);
+      object-fit: fill;
+    }
+    .content-area {
+      position: absolute;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 14px;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+    .paspartu-area {
+      position: absolute;
+      background: #f5f5dc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .info-panel {
+      background: #0f3460;
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+    .highlight { color: #ffd700; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Çerçeve Test: GD154-4313-BA</h1>
+
+  <div class="controls">
+    <div class="control-row">
+      <label>innerRatio:</label>
+      <input type="range" id="ratioSlider" min="0.50" max="0.98" step="0.01" value="0.78">
+      <span class="value-display" id="ratioValue">0.78</span>
+    </div>
+    <div class="control-row">
+      <label>Önizleme Boyutu:</label>
+      <input type="range" id="sizeSlider" min="200" max="500" step="10" value="350">
+      <span class="value-display" id="sizeValue">350px</span>
+    </div>
+    <div class="control-row">
+      <label>Paspartu (mm):</label>
+      <input type="number" id="paspartuInput" min="0" max="100" value="30">
+    </div>
+  </div>
+
+  <div class="preview-container">
+    <div class="preview-box">
+      <h3>Paspartusuz</h3>
+      <div class="frame-wrapper" id="wrapper1">
+        <img class="frame-img" id="frameImg1" src="https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp">
+        <div class="content-area" id="content1">ESER</div>
+      </div>
+      <div class="info-panel" id="info1"></div>
+    </div>
+
+    <div class="preview-box">
+      <h3>Paspartulu</h3>
+      <div class="frame-wrapper" id="wrapper2">
+        <img class="frame-img" id="frameImg2" src="https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp">
+        <div class="paspartu-area" id="paspartu2">
+          <div class="content-area" id="content2">ESER</div>
+        </div>
+      </div>
+      <div class="info-panel" id="info2"></div>
+    </div>
+  </div>
+
+  <script>
+    const frameUrl = "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp";
+
+    const ratioSlider = document.getElementById('ratioSlider');
+    const sizeSlider = document.getElementById('sizeSlider');
+    const paspartuInput = document.getElementById('paspartuInput');
+    const ratioValue = document.getElementById('ratioValue');
+    const sizeValue = document.getElementById('sizeValue');
+
+    function updatePreview() {
+      const innerRatio = parseFloat(ratioSlider.value);
+      const frameSize = parseInt(sizeSlider.value);
+      const paspartuMM = parseInt(paspartuInput.value) || 0;
+
+      ratioValue.textContent = innerRatio.toFixed(2);
+      sizeValue.textContent = frameSize + 'px';
+
+      // Çerçeve kalınlığı oranı
+      const borderRatio = (1 - innerRatio) / 2;
+      const borderPx = frameSize * borderRatio;
+      const innerPx = frameSize * innerRatio;
+
+      // === Paspartusuz Önizleme ===
+      document.getElementById('wrapper1').style.setProperty('--frame-size', frameSize + 'px');
+      document.getElementById('frameImg1').style.width = frameSize + 'px';
+      document.getElementById('frameImg1').style.height = frameSize + 'px';
+
+      const content1 = document.getElementById('content1');
+      content1.style.width = innerPx + 'px';
+      content1.style.height = innerPx + 'px';
+      content1.style.top = borderPx + 'px';
+      content1.style.left = borderPx + 'px';
+
+      document.getElementById('info1').innerHTML = `
+        <span class="highlight">innerRatio:</span> ${innerRatio.toFixed(2)}<br>
+        <span class="highlight">Çerçeve:</span> ${frameSize}px x ${frameSize}px<br>
+        <span class="highlight">İç Alan:</span> ${innerPx.toFixed(1)}px x ${innerPx.toFixed(1)}px<br>
+        <span class="highlight">Kenar:</span> ${borderPx.toFixed(1)}px
+      `;
+
+      // === Paspartulu Önizleme ===
+      document.getElementById('wrapper2').style.setProperty('--frame-size', frameSize + 'px');
+      document.getElementById('frameImg2').style.width = frameSize + 'px';
+      document.getElementById('frameImg2').style.height = frameSize + 'px';
+
+      // Paspartu hesaplama (gerçek mm'den px'e dönüşüm - ölçekli)
+      const scaleFactor = innerPx / 200; // 200mm varsayılan iç alan
+      const paspartuPx = paspartuMM * scaleFactor;
+      const artPx = innerPx - (paspartuPx * 2);
+
+      const paspartu2 = document.getElementById('paspartu2');
+      paspartu2.style.width = innerPx + 'px';
+      paspartu2.style.height = innerPx + 'px';
+      paspartu2.style.top = borderPx + 'px';
+      paspartu2.style.left = borderPx + 'px';
+
+      const content2 = document.getElementById('content2');
+      content2.style.position = 'absolute';
+      content2.style.width = Math.max(artPx, 20) + 'px';
+      content2.style.height = Math.max(artPx, 20) + 'px';
+      content2.style.top = paspartuPx + 'px';
+      content2.style.left = paspartuPx + 'px';
+
+      document.getElementById('info2').innerHTML = `
+        <span class="highlight">innerRatio:</span> ${innerRatio.toFixed(2)}<br>
+        <span class="highlight">Çerçeve:</span> ${frameSize}px x ${frameSize}px<br>
+        <span class="highlight">İç Alan:</span> ${innerPx.toFixed(1)}px (paspartu dahil)<br>
+        <span class="highlight">Paspartu:</span> ${paspartuMM}mm (${paspartuPx.toFixed(1)}px)<br>
+        <span class="highlight">Eser:</span> ${artPx.toFixed(1)}px x ${artPx.toFixed(1)}px
+      `;
+    }
+
+    ratioSlider.addEventListener('input', updatePreview);
+    sizeSlider.addEventListener('input', updatePreview);
+    paspartuInput.addEventListener('input', updatePreview);
+
+    updatePreview();
+  </script>
+</body>
+</html>
