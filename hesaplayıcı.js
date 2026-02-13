@@ -1759,6 +1759,9 @@
         const overlap = 4;
         frameImage.style.borderWidth = `${frameBorderPx + overlap}px`;
         frameImage.style.borderImage = `url('${realFrameUrl}') ${frameSlice} round`;
+
+        // İnce çerçevelerde border-image boşluk bırakabilir, paspartu rengiyle doldur
+        frameImage.style.backgroundColor = matColor;
       } else {
         frameWrapper.classList.remove("has-real-frame");
         frameImage.style.display = "none";
