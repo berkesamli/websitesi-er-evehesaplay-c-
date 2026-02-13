@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Çerçeve Test - border-image-slice</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #1a1a2e;
+      color: #fff;
+      padding: 30px;
+      min-height: 100vh;
+    }
+    h1 { text-align: center; margin-bottom: 10px; color: #ffd700; }
+    .subtitle { text-align: center; margin-bottom: 25px; color: #94bbe9; font-size: 14px; }
+    .controls {
+      background: #16213e;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 650px;
+      margin: 0 auto 30px;
+    }
+    .control-section {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #0f3460;
+    }
+    .control-section:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    .section-title {
+      color: #e94560;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+    .control-row:last-child { margin-bottom: 0; }
+    label { min-width: 150px; font-weight: 500; font-size: 14px; }
+    input[type="range"] { flex: 1; }
+    input[type="number"], input[type="text"] {
+      width: 100px;
+      padding: 8px;
+      border: none;
+      border-radius: 6px;
+      background: #0f3460;
+      color: #fff;
+      text-align: center;
+      font-size: 14px;
+    }
+    input[type="text"] { width: 100%; text-align: left; }
+    .value-display {
+      background: #e94560;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+      min-width: 60px;
+      text-align: center;
+      font-size: 13px;
+    }
+    .preview-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+    .preview-box {
+      background: #16213e;
+      padding: 30px;
+      border-radius: 16px;
+      text-align: center;
+    }
+    .preview-box h3 { margin-bottom: 20px; color: #94bbe9; }
+
+    /* border-image-slice çerçeve stili */
+    .frame-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-style: solid;
+      border-color: transparent;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .content-area {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 12px;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+      width: 100%;
+      height: 100%;
+    }
+
+    .paspartu-area {
+      background: #f5f5dc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .info-panel {
+      background: #0f3460;
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 13px;
+      line-height: 1.8;
+      text-align: left;
+    }
+    .highlight { color: #ffd700; font-weight: bold; }
+    .highlight-green { color: #00ff88; font-weight: bold; }
+    .highlight-cyan { color: #00d4ff; font-weight: bold; }
+    .btn {
+      background: #e94560;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .btn:hover { background: #ff6b6b; }
+    .frame-info {
+      background: #0f3460;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-size: 12px;
+      color: #94bbe9;
+    }
+    .note {
+      background: rgba(233, 69, 96, 0.2);
+      border-left: 3px solid #e94560;
+      padding: 10px 15px;
+      margin-top: 15px;
+      font-size: 12px;
+      border-radius: 0 8px 8px 0;
+    }
+    .advantage-list {
+      background: rgba(0, 255, 136, 0.1);
+      border-left: 3px solid #00ff88;
+      padding: 10px 15px;
+      margin-top: 15px;
+      font-size: 12px;
+      border-radius: 0 8px 8px 0;
+    }
+    .advantage-list li { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h1>border-image-slice Çerçeve Test</h1>
+  <p class="subtitle">Köşeler Sabit - Kenarlar Esnek</p>
+
+  <div class="controls">
+    <div class="control-section">
+      <div class="section-title">İçerik Boyutu (mm)</div>
+      <div class="control-row">
+        <label>İçerik Genişliği:</label>
+        <input type="number" id="contentWidth" min="50" max="1000" value="200">
+        <span>mm</span>
+      </div>
+      <div class="control-row">
+        <label>İçerik Yüksekliği:</label>
+        <input type="number" id="contentHeight" min="50" max="1000" value="150">
+        <span>mm</span>
+      </div>
+    </div>
+
+    <div class="control-section">
+      <div class="section-title">Çerçeve Ayarları</div>
+      <div class="control-row">
+        <label>Çerçeve Kalınlığı:</label>
+        <input type="number" id="borderWidthMM" min="10" max="100" value="30">
+        <span>mm</span>
+      </div>
+      <div class="control-row">
+        <label>Slice Değeri:</label>
+        <input type="number" id="sliceValue" min="10" max="200" value="94">
+        <span>px (görsel kesimi)</span>
+      </div>
+      <div class="control-row">
+        <label>Paspartu Kalınlığı:</label>
+        <input type="number" id="paspartuMM" min="0" max="100" value="0">
+        <span>mm</span>
+      </div>
+      <div class="note">
+        <strong>Slice Değeri:</strong> Çerçeve görselinin köşe kesim noktası (px). Görsel 9 parçaya bölünür - köşeler sabit kalır, kenarlar esner.
+      </div>
+    </div>
+
+    <div class="control-section">
+      <div class="section-title">Önizleme Ayarları</div>
+      <div class="control-row">
+        <label>Önizleme Ölçeği:</label>
+        <input type="range" id="scaleSlider" min="0.3" max="1.5" step="0.1" value="0.8">
+        <span class="value-display" id="scaleValue">0.8x</span>
+      </div>
+    </div>
+
+    <div class="control-section">
+      <div class="section-title">Çerçeve Görseli URL</div>
+      <div class="control-row">
+        <input type="text" id="frameUrl" value="https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp" placeholder="Çerçeve PNG/JPG URL'si girin...">
+      </div>
+      <button class="btn" onclick="loadFrame()">Görseli Yükle</button>
+    </div>
+
+    <div class="advantage-list">
+      <strong>border-image-slice Avantajları:</strong>
+      <ul>
+        <li>Köşeler asla deforme olmaz</li>
+        <li>Kenarlar sadece uzunluk yönünde esner</li>
+        <li>Her boyutta doğru görünüm</li>
+        <li>Daha az hesaplama, daha iyi performans</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="preview-container">
+    <div class="preview-box">
+      <h3>Paspartusuz</h3>
+      <div class="frame-content" id="frame1">
+        <div class="content-area" id="content1">ESER</div>
+      </div>
+      <div class="info-panel" id="info1"></div>
+    </div>
+
+    <div class="preview-box">
+      <h3>Paspartulu</h3>
+      <div class="frame-content" id="frame2">
+        <div class="paspartu-area" id="paspartu2">
+          <div class="content-area" id="content2">ESER</div>
+        </div>
+      </div>
+      <div class="info-panel" id="info2"></div>
+    </div>
+  </div>
+
+  <div class="controls" style="margin-top: 30px;">
+    <div class="section-title">Hesaplanan Değerler</div>
+    <div class="frame-info" id="calcInfo"></div>
+  </div>
+
+  <script>
+    // Elementler
+    const contentWidthInput = document.getElementById('contentWidth');
+    const contentHeightInput = document.getElementById('contentHeight');
+    const borderWidthMMInput = document.getElementById('borderWidthMM');
+    const sliceValueInput = document.getElementById('sliceValue');
+    const paspartuMMInput = document.getElementById('paspartuMM');
+    const scaleSlider = document.getElementById('scaleSlider');
+    const frameUrlInput = document.getElementById('frameUrl');
+    const scaleValueDisplay = document.getElementById('scaleValue');
+
+    let currentFrameUrl = frameUrlInput.value;
+
+    function loadFrame() {
+      const url = frameUrlInput.value.trim();
+      if (url) {
+        currentFrameUrl = url;
+        updatePreview();
+      }
+    }
+
+    function updatePreview() {
+      // Değerleri al (mm cinsinden)
+      const contentW = parseFloat(contentWidthInput.value) || 200;
+      const contentH = parseFloat(contentHeightInput.value) || 150;
+      const borderWidthMM = parseFloat(borderWidthMMInput.value) || 30;
+      const sliceValue = parseInt(sliceValueInput.value) || 94;
+      const paspartuMM = parseFloat(paspartuMMInput.value) || 0;
+      const scale = parseFloat(scaleSlider.value);
+
+      scaleValueDisplay.textContent = scale + 'x';
+
+      // mm'den px'e dönüşüm
+      const pxPerMM = 1 * scale;
+
+      // === PASPARTUSUZ HESAPLAMA ===
+      const previewContentW1 = contentW * pxPerMM;
+      const previewContentH1 = contentH * pxPerMM;
+      const previewBorderW1 = borderWidthMM * pxPerMM;
+
+      // Paspartusuz çerçeve uygula
+      const frame1 = document.getElementById('frame1');
+      const content1 = document.getElementById('content1');
+
+      // İçerik boyutu (border'ın içi)
+      frame1.style.width = `${previewContentW1}px`;
+      frame1.style.height = `${previewContentH1}px`;
+
+      // border-image-slice uygula
+      frame1.style.borderWidth = `${previewBorderW1}px`;
+      frame1.style.borderImageSource = `url(${currentFrameUrl})`;
+      frame1.style.borderImageSlice = `${sliceValue} fill`;
+      frame1.style.borderImageRepeat = 'stretch';
+
+      // Çerçeve dış boyutu
+      const frameOuterW1 = contentW + (borderWidthMM * 2);
+      const frameOuterH1 = contentH + (borderWidthMM * 2);
+
+      document.getElementById('info1').innerHTML = `
+        <span class="highlight">İçerik:</span> ${contentW} x ${contentH} mm<br>
+        <span class="highlight">Çerçeve Kalınlığı:</span> ${borderWidthMM} mm<br>
+        <span class="highlight-green">Çerçeve Dış:</span> ${frameOuterW1} x ${frameOuterH1} mm<br>
+        <span class="highlight-cyan">Slice:</span> ${sliceValue}px
+      `;
+
+      // === PASPARTULU HESAPLAMA ===
+      const innerContentW = contentW;
+      const innerContentH = contentH;
+      const totalContentW = contentW + (paspartuMM * 2);
+      const totalContentH = contentH + (paspartuMM * 2);
+
+      const previewTotalW2 = totalContentW * pxPerMM;
+      const previewTotalH2 = totalContentH * pxPerMM;
+      const previewBorderW2 = borderWidthMM * pxPerMM;
+      const previewInnerW2 = innerContentW * pxPerMM;
+      const previewInnerH2 = innerContentH * pxPerMM;
+
+      const frame2 = document.getElementById('frame2');
+      const paspartu2 = document.getElementById('paspartu2');
+      const content2 = document.getElementById('content2');
+
+      // İçerik boyutu (paspartu dahil)
+      frame2.style.width = `${previewTotalW2}px`;
+      frame2.style.height = `${previewTotalH2}px`;
+
+      // border-image-slice uygula
+      frame2.style.borderWidth = `${previewBorderW2}px`;
+      frame2.style.borderImageSource = `url(${currentFrameUrl})`;
+      frame2.style.borderImageSlice = `${sliceValue} fill`;
+      frame2.style.borderImageRepeat = 'stretch';
+
+      // Paspartu ve içerik
+      paspartu2.style.width = '100%';
+      paspartu2.style.height = '100%';
+      paspartu2.style.padding = `${paspartuMM * pxPerMM}px`;
+
+      // Çerçeve dış boyutu
+      const frameOuterW2 = totalContentW + (borderWidthMM * 2);
+      const frameOuterH2 = totalContentH + (borderWidthMM * 2);
+
+      document.getElementById('info2').innerHTML = `
+        <span class="highlight">Eser:</span> ${innerContentW} x ${innerContentH} mm<br>
+        <span class="highlight">Paspartu:</span> ${paspartuMM} mm<br>
+        <span class="highlight-green">Çerçeve Dış:</span> ${frameOuterW2} x ${frameOuterH2} mm<br>
+        <span class="highlight-cyan">Slice:</span> ${sliceValue}px
+      `;
+
+      // Genel hesaplama bilgisi
+      document.getElementById('calcInfo').innerHTML = `
+        <strong>Özet Karşılaştırma:</strong><br><br>
+        <table style="width:100%; font-size:12px;">
+          <tr>
+            <td></td>
+            <td><strong>Paspartusuz</strong></td>
+            <td><strong>Paspartulu (${paspartuMM}mm)</strong></td>
+          </tr>
+          <tr>
+            <td>İçerik Boyutu:</td>
+            <td>${contentW} x ${contentH} mm</td>
+            <td>${totalContentW} x ${totalContentH} mm</td>
+          </tr>
+          <tr>
+            <td>Çerçeve Dış Boyutu:</td>
+            <td>${frameOuterW1} x ${frameOuterH1} mm</td>
+            <td>${frameOuterW2} x ${frameOuterH2} mm</td>
+          </tr>
+          <tr>
+            <td>border-width (px):</td>
+            <td colspan="2" style="text-align:center">${previewBorderW1.toFixed(1)}px (scale: ${scale}x)</td>
+          </tr>
+          <tr>
+            <td>border-image-slice:</td>
+            <td colspan="2" style="text-align:center"><span class="highlight-cyan">${sliceValue} fill</span></td>
+          </tr>
+        </table>
+        <br>
+        <span class="highlight">Not:</span> Ölçüleri değiştirdiğinizde köşelerin sabit kaldığını, sadece kenarların esediğini gözlemleyin.
+      `;
+    }
+
+    // Event listeners
+    contentWidthInput.addEventListener('input', updatePreview);
+    contentHeightInput.addEventListener('input', updatePreview);
+    borderWidthMMInput.addEventListener('input', updatePreview);
+    sliceValueInput.addEventListener('input', updatePreview);
+    paspartuMMInput.addEventListener('input', updatePreview);
+    scaleSlider.addEventListener('input', updatePreview);
+
+    // Enter ile URL yükleme
+    frameUrlInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') loadFrame();
+    });
+
+    // İlk yükleme
+    updatePreview();
+  </script>
+</body>
+</html>
