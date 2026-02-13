@@ -69,35 +69,59 @@
     ]
   };
 
-  // ========== ÇERÇEVE GÖRSELLERİ (SKU -> URL) ==========
-  // Tek görsel yeterli - 9-slice ile tüm boyutlara uyum sağlar
-  const FRAME_IMAGES = {
-    "GD154-4313-BA": "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp",
-    "GD154-3427-BA": "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/5bc0e7d1-c8c9-451b-98c8-f0412188e500/image_1080.webp",
+  // ========== ÇERÇEVE GÖRSELLERİ (SKU -> URL ve kalınlık) ==========
+  // Her çerçeve modeli için:
+  // - url: Görsel linki
+  // - slice: Border-image slice değeri (çerçeve kalınlığına göre ayarlanır)
+  //   Kalın çerçeveler için: %15-20
+  //   Orta kalınlık için: %10-14
+  //   İnce çerçeveler için: %6-9
+  const FRAME_DATA = {
+    "GD154-4313-BA": {
+      url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp",
+      slice: "15%"  // Kalın çerçeve
+    },
+    "GD154-3427-BA": {
+      url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/5bc0e7d1-c8c9-451b-98c8-f0412188e500/image_1080.webp",
+      slice: "8%"   // İnce çerçeve
+    },
+    "GB139-1211T": {
+      url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/48479c0b-c501-4ee3-83b7-a2f061493c91/image_1080.webp",
+      slice: "4%"   // Çok ince çerçeve
+    },
     // Yeni çerçeveler buraya eklenecek:
-    // "SKU-KODU": "https://cdn.../gorsel.webp",
+    // "SKU-KODU": {
+    //   url: "https://cdn.../gorsel.webp",
+    //   slice: "12%"  // Çerçeve kalınlığına göre ayarla
+    // },
   };
 
-  // Çerçeve görselini SKU'dan al
-  function getFrameImageUrl() {
+  // Çerçeve verilerini SKU'dan al (url ve slice)
+  function getFrameData() {
     const sku = getProductSku();
     if (!sku) return null;
 
     // Tam eşleşme
-    if (FRAME_IMAGES[sku]) {
-      return FRAME_IMAGES[sku];
+    if (FRAME_DATA[sku]) {
+      return FRAME_DATA[sku];
     }
 
     // Normalize edilmiş arama
     const skuNormalized = sku.toUpperCase().replace(/[\s-_]/g, '');
-    for (const key in FRAME_IMAGES) {
+    for (const key in FRAME_DATA) {
       const keyNormalized = key.toUpperCase().replace(/[\s-_]/g, '');
       if (keyNormalized === skuNormalized) {
-        return FRAME_IMAGES[key];
+        return FRAME_DATA[key];
       }
     }
 
     return null;
+  }
+
+  // Geriye uyumluluk için - sadece URL döndürür
+  function getFrameImageUrl() {
+    const data = getFrameData();
+    return data ? data.url : null;
   }
 
   const STATE = {
@@ -1630,7 +1654,9 @@
     if (!frame || !matOuter || !bevelOuter || !box) return;
 
     // Gerçek çerçeve görseli kontrolü
-    const realFrameUrl = getFrameImageUrl();
+    const frameData = getFrameData();
+    const realFrameUrl = frameData ? frameData.url : null;
+    const frameSlice = frameData ? frameData.slice : "15%";
     const hasRealFrame = !!realFrameUrl;
 
     const boxW = box.clientWidth;
@@ -1665,7 +1691,7 @@
           frameImage.style.width = "160px";
           frameImage.style.height = "160px";
           frameImage.style.borderWidth = "20px";
-          frameImage.style.borderImage = `url('${realFrameUrl}') 15% round`;
+          frameImage.style.borderImage = `url('${realFrameUrl}') ${frameSlice} round`;
         } else {
           frameWrapper.classList.remove("has-real-frame");
           frameImage.style.display = "none";
@@ -1732,7 +1758,7 @@
         // Bu sayede çerçevenin iç kenarı paspartunun dışına taşıyor
         const overlap = 4;
         frameImage.style.borderWidth = `${frameBorderPx + overlap}px`;
-        frameImage.style.borderImage = `url('${realFrameUrl}') 15% round`;
+        frameImage.style.borderImage = `url('${realFrameUrl}') ${frameSlice} round`;
       } else {
         frameWrapper.classList.remove("has-real-frame");
         frameImage.style.display = "none";
