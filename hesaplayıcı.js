@@ -817,6 +817,8 @@
         pointer-events: none;
         border-style: solid;
         border-width: 0;
+        border-color: transparent;
+        border-image-repeat: stretch;
         box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         transition: width 0.35s ease-out, height 0.35s ease-out, border-width 0.35s ease-out;
       }
@@ -1691,7 +1693,9 @@
           frameImage.style.width = "160px";
           frameImage.style.height = "160px";
           frameImage.style.borderWidth = "20px";
-          frameImage.style.borderImage = `url('${realFrameUrl}') ${frameSlice} round`;
+          frameImage.style.borderImageSource = `url('${realFrameUrl}')`;
+          frameImage.style.borderImageSlice = frameSlice;
+          frameImage.style.borderImageRepeat = 'stretch';
         } else {
           frameWrapper.classList.remove("has-real-frame");
           frameImage.style.display = "none";
@@ -1758,7 +1762,9 @@
         // Bu sayede çerçevenin iç kenarı paspartunun dışına taşıyor
         const overlap = 4;
         frameImage.style.borderWidth = `${frameBorderPx + overlap}px`;
-        frameImage.style.borderImage = `url('${realFrameUrl}') ${frameSlice} round`;
+        frameImage.style.borderImageSource = `url('${realFrameUrl}')`;
+        frameImage.style.borderImageSlice = frameSlice;
+        frameImage.style.borderImageRepeat = 'stretch';
       } else {
         frameWrapper.classList.remove("has-real-frame");
         frameImage.style.display = "none";
