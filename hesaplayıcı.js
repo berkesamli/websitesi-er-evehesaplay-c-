@@ -75,45 +75,32 @@
   //
   // Her çerçeve modeli için:
   // - url: Çerçeve görsel linki (PNG veya WebP)
-  // - slice: Köşe kesim değeri (px) - görselin kenarından ölçülen
   // - borderWidth: Çerçeve kalınlığı (mm) - gerçek fiziksel kalınlık
-  // - (opsiyonel) sliceTop, sliceRight, sliceBottom, sliceLeft: Farklı kenarlar için
   //
   // Çerçeve mantığı (border-image-slice):
   // 1. Görsel 9 parçaya bölünür (4 köşe + 4 kenar + merkez)
   // 2. Köşeler sabit kalır (deforme olmaz)
   // 3. Kenarlar sadece uzunluk yönünde esner
-  // 4. Merkez (fill) içerik alanını kaplar
+  // 4. slice değeri %15 sabit (tüm çerçeveler için optimize edilmiş)
   //
-  // slice nasıl hesaplanır:
-  // 1. Çerçeve görselinin dış boyutlarını ölç (örn: 759 x 651 px)
-  // 2. Kenar kalınlığını ölç (görsel px cinsinden)
-  //    Yatay kenar: (759 - 571) / 2 = 94 px
-  //    Dikey kenar: (651 - 464) / 2 = 93.5 px
-  // 3. En büyük değeri slice olarak kullan: 94
-  // 4. borderWidth = gerçek çerçeve kalınlığı mm cinsinden
+  // Tüm çerçeve görsellerinin iç boş alanı: 571.1 x 464 px (standart)
+  // Dış boyutlar çerçeve kalınlığına göre değişir
   const FRAME_DATA = {
     "GD154-4313-BA": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp",
-      // Görsel: 759 x 651 px, İç alan: 571 x 464 px
-      // Kenar: (759-571)/2 = 94px, (651-464)/2 = 93.5px
-      slice: 94,           // Köşe kesim (px)
       borderWidth: 30      // Çerçeve kalınlığı (mm)
     },
     "GD154-3427-BA": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/5bc0e7d1-c8c9-451b-98c8-f0412188e500/image_1080.webp",
-      slice: 80,           // Kalın çerçeve
       borderWidth: 35
     },
     "GB139-1211T": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/48479c0b-c501-4ee3-83b7-a2f061493c91/image_1080.webp",
-      slice: 40,           // İnce çerçeve
       borderWidth: 15
     },
     // Yeni çerçeveler buraya eklenecek:
     // "SKU-KODU": {
     //   url: "https://cdn.../gorsel.png",
-    //   slice: 94,         // Köşe kesim (px) - görsel üzerinden ölçülür
     //   borderWidth: 30    // Çerçeve kalınlığı (mm)
     // },
   };
@@ -826,6 +813,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        max-width: 100%;
+        max-height: 100%;
       }
 
       /* İçerik katmanı - border-image ile çerçeve uygulanır */
@@ -1680,9 +1669,9 @@
     const hasRealFrame = !!realFrameUrl;
 
     // border-image-slice değerleri
-    const defaultSlice = 80;        // Varsayılan köşe kesimi (px)
+    // %15 yüzde değeri tüm çerçeveler için optimize edilmiş
+    const frameSlicePercent = 15;   // Sabit %15 slice (köşeler için)
     const defaultBorderWidth = 25;  // Varsayılan çerçeve kalınlığı (mm)
-    const frameSlice = frameData ? (frameData.slice || defaultSlice) : defaultSlice;
     const frameBorderWidthMM = frameData ? (frameData.borderWidth || defaultBorderWidth) : defaultBorderWidth;
 
     const boxW = box.clientWidth;
@@ -1721,7 +1710,7 @@
           const defaultBorderPx = 25;
           frame.style.borderWidth = `${defaultBorderPx}px`;
           frame.style.borderImageSource = `url(${realFrameUrl})`;
-          frame.style.borderImageSlice = `${frameSlice} fill`;
+          frame.style.borderImageSlice = `${frameSlicePercent}%`;
           frame.style.borderImageRepeat = "stretch";
         } else {
           frameWrapper.classList.remove("has-real-frame");
@@ -1777,23 +1766,31 @@
     const borderWidthPx = Math.round(frameBorderWidthMM * scale); // Çerçeve kalınlığı (px)
     const overlapPx = Math.max(2, overlapMM * scale); // En az 2px overlap
 
-    // İçerik alanı (olga-frame) boyutları
-    // border-image-slice'da bu content alanıdır, border dışarı eklenir
-    frame.style.width = `${contentW}px`;
-    frame.style.height = `${contentH}px`;
+    // ========== GERÇEK ÇERÇEVE GÖRSELİ (border-image-slice) ==========
+    // Minimum border kalınlığı: 8px (çok küçük ölçülerde bile görünür olsun)
+    const minBorderPx = 8;
+    const finalBorderPx = hasRealFrame ? Math.max(minBorderPx, borderWidthPx) : 0;
+
+    // İçerik alanı (olga-frame) boyutları - border için yer bırak
+    // Eğer minimum border uygulanıyorsa, içeriği küçült ki taşmasın
+    const borderDiff = finalBorderPx - borderWidthPx;
+    const adjustedContentW = Math.max(30, contentW - (borderDiff * 2));
+    const adjustedContentH = Math.max(30, contentH - (borderDiff * 2));
+
+    frame.style.width = `${adjustedContentW}px`;
+    frame.style.height = `${adjustedContentH}px`;
     frame.style.padding = "0px";
     frame.style.background = "transparent";
 
-    // ========== GERÇEK ÇERÇEVE GÖRSELİ (border-image-slice) ==========
     if (frameWrapper) {
       if (hasRealFrame) {
         frameWrapper.classList.add("has-real-frame");
 
         // border-image-slice ile çerçeve uygula
         // Köşeler sabit kalır, kenarlar esnek şekilde esner
-        frame.style.borderWidth = `${borderWidthPx}px`;
+        frame.style.borderWidth = `${finalBorderPx}px`;
         frame.style.borderImageSource = `url(${realFrameUrl})`;
-        frame.style.borderImageSlice = `${frameSlice} fill`;
+        frame.style.borderImageSlice = `${frameSlicePercent}%`;
         frame.style.borderImageRepeat = "stretch";
       } else {
         frameWrapper.classList.remove("has-real-frame");
@@ -1818,16 +1815,16 @@
     // Paspartu var mı kontrolü
     const hasMatEdges = STATE.matTypePriceM2 > 0 && (STATE.matTop > 0 || STATE.matBottom > 0 || STATE.matLeft > 0 || STATE.matRight > 0);
 
-    // Paspartu kenar kalınlıkları (overlap dahil)
-    const cTop = hasMatEdges && STATE.matTop > 0 ? Math.max(minMatPx, Math.min(rawTop, (contentH - 20) / 2)) : 0;
-    const cBottom = hasMatEdges && STATE.matBottom > 0 ? Math.max(minMatPx, Math.min(rawBottom, (contentH - 20) / 2)) : 0;
-    const cLeft = hasMatEdges && STATE.matLeft > 0 ? Math.max(minMatPx, Math.min(rawLeft, (contentW - 20) / 2)) : 0;
-    const cRight = hasMatEdges && STATE.matRight > 0 ? Math.max(minMatPx, Math.min(rawRight, (contentW - 20) / 2)) : 0;
+    // Paspartu kenar kalınlıkları (overlap dahil) - adjustedContent boyutlarına göre
+    const cTop = hasMatEdges && STATE.matTop > 0 ? Math.max(minMatPx, Math.min(rawTop, (adjustedContentH - 20) / 2)) : 0;
+    const cBottom = hasMatEdges && STATE.matBottom > 0 ? Math.max(minMatPx, Math.min(rawBottom, (adjustedContentH - 20) / 2)) : 0;
+    const cLeft = hasMatEdges && STATE.matLeft > 0 ? Math.max(minMatPx, Math.min(rawLeft, (adjustedContentW - 20) / 2)) : 0;
+    const cRight = hasMatEdges && STATE.matRight > 0 ? Math.max(minMatPx, Math.min(rawRight, (adjustedContentW - 20) / 2)) : 0;
 
     // Eser boyutları - paspartu kenarlarını çıkar
     // Paspartu yoksa içerik = eser
-    const artWpx = Math.max(20, contentW - cLeft - cRight);
-    const artHpx = Math.max(20, contentH - cTop - cBottom);
+    const artWpx = Math.max(20, adjustedContentW - cLeft - cRight);
+    const artHpx = Math.max(20, adjustedContentH - cTop - cBottom);
 
     // ========== ÇİFT PASPARTU ==========
     if (isDouble) {
