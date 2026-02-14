@@ -96,7 +96,7 @@
   };
 
   // Tüm çerçeveler için sabit değerler
-  const FRAME_SLICE = "15%";
+  const FRAME_SLICE = "33%";
   const FRAME_BORDER_SCALE = 1.0;
 
   // Çerçeve verilerini SKU'dan al (url ve slice)
@@ -827,7 +827,7 @@
       }
 
       .olga-frame{
-        background: #2d2d2d;
+        background: #000000;
         display:grid;
         box-sizing:border-box;
         box-shadow: 0 8px 32px rgba(0,0,0,0.3);
@@ -1663,9 +1663,9 @@
 
     // Varsayılan durum (ölçü girilmemiş)
     if (!(STATE.artWMM > 0 && STATE.artHMM > 0) || boxW < 50 || boxH < 50) {
-      const defaultBorderPx = hasRealFrame ? Math.max(5, Math.round(10 * FRAME_BORDER_SCALE)) : 10;
-      frame.style.width = "160px";
-      frame.style.height = "160px";
+      const defaultBorderPx = hasRealFrame ? Math.max(12, Math.round(25 * FRAME_BORDER_SCALE)) : 15;
+      frame.style.width = "200px";
+      frame.style.height = "200px";
 
       // Gerçek çerçeve - border-image doğrudan frame'e
       if (hasRealFrame) {
@@ -1812,12 +1812,13 @@
       activeArt.style.background = "#d0d0d0";
     }
 
-    // Frame arka planını paspartu rengiyle doldur
+    // Frame arka planını paspartu düz rengiyle doldur (gradient değil)
     // Böylece çerçeve iç kenarı ile paspartu arasında boşluk görünmez
+    // Gradient sadece mat-outer'da kalır, 3. katman etkisi oluşmaz
     if (hasMatEdges) {
-      frame.style.background = getMatPreviewBackground();
+      frame.style.background = STATE.matColorHex || "#ffffff";
     } else {
-      frame.style.background = "#d0d0d0"; // eser rengi - boşluk görünmesin
+      frame.style.background = "#d0d0d0";
     }
 
     // Cam efekti
