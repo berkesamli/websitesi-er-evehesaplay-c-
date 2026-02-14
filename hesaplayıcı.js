@@ -1683,7 +1683,12 @@
       matOuter.style.background = "#ffffff";
       bevelOuter.style.padding = `${bevelPx}px`;
       bevelOuter.style.background = "#ffffff";
-      frame.style.background = "#ffffff"; // paspartu dolgu
+      // Fallback modda (gerçek çerçeve yok) background siyah kalmalı ki çerçeve görünsün
+      if (hasRealFrame) {
+        frame.style.background = "#ffffff";
+      } else {
+        frame.style.background = "";  // CSS default (#000000) kullanılsın
+      }
 
       if (activeArt) {
         activeArt.style.background = "#d0d0d0";
@@ -1809,13 +1814,16 @@
       activeArt.style.background = "#d0d0d0";
     }
 
-    // Frame arka planını paspartu düz rengiyle doldur (gradient değil)
-    // Böylece çerçeve iç kenarı ile paspartu arasında boşluk görünmez
-    // Gradient sadece mat-outer'da kalır, 3. katman etkisi oluşmaz
-    if (hasMatEdges) {
-      frame.style.background = STATE.matColorHex || "#ffffff";
+    // Frame arka planını SADECE gerçek çerçeve varken paspartu rengiyle doldur
+    // Fallback modda (padding = çerçeve) background siyah kalmalı ki çerçeve görünsün
+    if (hasRealFrame) {
+      if (hasMatEdges) {
+        frame.style.background = STATE.matColorHex || "#ffffff";
+      } else {
+        frame.style.background = "#d0d0d0";
+      }
     } else {
-      frame.style.background = "#d0d0d0";
+      frame.style.background = "";  // CSS default (#000000) kullanılsın
     }
 
     // Cam efekti
