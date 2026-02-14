@@ -1556,32 +1556,27 @@
     // ✅ Altın / Gümüş parlak
     if (type === 1700) {
       if (code === "W232") {
-        return "linear-gradient(135deg,#fff8d9 0%,#f4d98a 18%,#d4af37 42%,#fff2bf 55%,#b8860b 78%,#fff6cf 100%)";
+        return `
+          repeating-linear-gradient(180deg, rgba(255,248,200,0.15) 0px, rgba(180,130,10,0.08) 1px, rgba(255,242,191,0.12) 2px, transparent 3px),
+          repeating-linear-gradient(90deg, rgba(212,175,55,0.06) 0px, rgba(255,255,255,0.04) 2px, transparent 4px),
+          #d4af37
+        `;
       }
       if (code === "W233") {
-        return "linear-gradient(135deg,#ffffff 0%,#e6e6e6 18%,#bfbfbf 42%,#f8f8f8 55%,#9b9b9b 78%,#ffffff 100%)";
+        return `
+          repeating-linear-gradient(180deg, rgba(255,255,255,0.18) 0px, rgba(160,160,160,0.1) 1px, rgba(245,245,245,0.14) 2px, transparent 3px),
+          repeating-linear-gradient(90deg, rgba(200,200,200,0.08) 0px, rgba(255,255,255,0.05) 2px, transparent 4px),
+          #c0c0c0
+        `;
       }
       return hex;
     }
 
-    // ✅ Kadife dokusu - premium kumaş görünümü (renk korunur)
+    // ✅ Kadife dokusu - kumaş mikro-doku (radial yok → elementler arası pürüzsüz geçiş)
     if (type === 3000) {
       return `
-        repeating-linear-gradient(
-          90deg,
-          rgba(0,0,0,.03) 0px,
-          rgba(255,255,255,.02) 1px,
-          rgba(0,0,0,.02) 2px,
-          transparent 3px
-        ),
-        repeating-linear-gradient(
-          0deg,
-          rgba(0,0,0,.02) 0px,
-          rgba(255,255,255,.015) 1px,
-          transparent 2px
-        ),
-        radial-gradient(ellipse at 25% 25%, rgba(255,255,255,.08), transparent 60%),
-        radial-gradient(ellipse at 75% 75%, rgba(0,0,0,.1), transparent 60%),
+        repeating-linear-gradient(90deg, rgba(0,0,0,.03) 0px, rgba(255,255,255,.02) 1px, rgba(0,0,0,.02) 2px, transparent 3px),
+        repeating-linear-gradient(0deg, rgba(0,0,0,.02) 0px, rgba(255,255,255,.015) 1px, transparent 2px),
         ${hex}
       `;
     }
