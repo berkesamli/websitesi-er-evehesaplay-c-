@@ -784,7 +784,10 @@
         height:240px;
         border:2px dashed #e0d6cc;
         border-radius:14px;
-        background: #ffffff;
+        background:
+          repeating-linear-gradient(0deg, rgba(160,120,70,0.18) 0px, rgba(200,170,130,0.09) 1px, rgba(140,100,55,0.12) 2px, transparent 3px, transparent 5px),
+          repeating-linear-gradient(90deg, rgba(0,0,0,0.02) 0px, rgba(255,255,255,0.015) 1px, transparent 2px),
+          #c4a882;
         display:flex;
         align-items:center;
         justify-content:center;
@@ -1946,7 +1949,7 @@
       if (hasMatEdges) {
         frame.style.background = getMatPreviewBackground();
       } else {
-        frame.style.background = "#d0d0d0";
+        frame.style.background = ART_BG_TEXTURE;
       }
     } else {
       frame.style.background = "";  // CSS default (#000000) kullanılsın
