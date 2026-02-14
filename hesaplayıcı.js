@@ -836,11 +836,6 @@
         position: relative;
       }
 
-      /* Gerçek görsel varken - çerçeve arkası transparent */
-      .olga-frame-wrapper.has-real-frame .olga-frame {
-        background: transparent !important;
-      }
-
       /* Dış Paspartu */
       .olga-mat-outer{
         background:transparent;
@@ -1688,6 +1683,7 @@
       matOuter.style.background = "#ffffff";
       bevelOuter.style.padding = `${bevelPx}px`;
       bevelOuter.style.background = "#ffffff";
+      frame.style.background = "#ffffff"; // paspartu dolgu
 
       if (activeArt) {
         activeArt.style.background = "#d0d0d0";
@@ -1808,9 +1804,17 @@
       }
     }
 
-    // Eser alanı - flex:1 + stretch ile otomatik doluyor, sabit boyut gerekmiyor
+    // Eser alanı
     if (activeArt) {
       activeArt.style.background = "#d0d0d0";
+    }
+
+    // Frame arka planını paspartu rengiyle doldur
+    // Böylece çerçeve iç kenarı ile paspartu arasında boşluk görünmez
+    if (hasMatEdges) {
+      frame.style.background = getMatPreviewBackground();
+    } else {
+      frame.style.background = "#d0d0d0"; // eser rengi - boşluk görünmesin
     }
 
     // Cam efekti
