@@ -96,8 +96,8 @@
   };
 
   // Tüm çerçeveler için sabit değerler
-  const FRAME_SLICE = "33%";
-  const FRAME_BORDER_SCALE = 1.0;
+  const FRAME_SLICE = "21%";
+  const FRAME_BORDER_SCALE = 1.3;
 
   // Çerçeve verilerini SKU'dan al (url ve slice)
   function getFrameData() {
@@ -1663,7 +1663,7 @@
 
     // Varsayılan durum (ölçü girilmemiş)
     if (!(STATE.artWMM > 0 && STATE.artHMM > 0) || boxW < 50 || boxH < 50) {
-      const defaultBorderPx = hasRealFrame ? Math.max(12, Math.round(25 * FRAME_BORDER_SCALE)) : 15;
+      const defaultBorderPx = hasRealFrame ? Math.max(15, Math.round(35 * FRAME_BORDER_SCALE)) : 15;
       frame.style.width = "200px";
       frame.style.height = "200px";
 
@@ -1712,7 +1712,7 @@
     const totalH = Math.max(STATE.totalHMM, STATE.artHMM);
 
     // Çerçeve kalınlığı - gerçek çerçeve varsa modelin borderScale'ine göre orantılı
-    const baseFrameBorderPx = Math.max(18, Math.min(30, Math.round(Math.min(availW, availH) * 0.12)));
+    const baseFrameBorderPx = Math.max(22, Math.min(48, Math.round(Math.min(availW, availH) * 0.16)));
     const frameBorderPx = hasRealFrame ? Math.max(8, Math.round(baseFrameBorderPx * FRAME_BORDER_SCALE)) : baseFrameBorderPx;
 
     const innerW = Math.max(40, availW - frameBorderPx * 2);
@@ -1817,11 +1817,11 @@
       activeArt.style.background = "#d0d0d0";
     }
 
-    // Frame arka planını SADECE gerçek çerçeve varken paspartu rengiyle doldur
-    // Fallback modda (padding = çerçeve) background siyah kalmalı ki çerçeve görünsün
+    // Frame arka planını SADECE gerçek çerçeve varken paspartu dokusuyla doldur
+    // Kadife/altın/gümüş seçilince frame dolgusu da aynı gradient/texture olur
     if (hasRealFrame) {
       if (hasMatEdges) {
-        frame.style.background = STATE.matColorHex || "#ffffff";
+        frame.style.background = getMatPreviewBackground();
       } else {
         frame.style.background = "#d0d0d0";
       }
