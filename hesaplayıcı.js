@@ -99,6 +99,13 @@
   const FRAME_SLICE = "21%";
   const FRAME_BORDER_SCALE = 1.3;
 
+  // Eser alanı arka planı - oluklu mukavva/karton dokusu
+  const ART_BG_TEXTURE = `
+    repeating-linear-gradient(0deg, rgba(160,120,70,0.25) 0px, rgba(200,170,130,0.12) 1px, rgba(140,100,55,0.18) 2px, transparent 3px, transparent 5px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.03) 0px, rgba(255,255,255,0.02) 1px, transparent 2px),
+    #b8976a
+  `;
+
   // Çerçeve verilerini SKU'dan al (url ve slice)
   function getFrameData() {
     const sku = getProductSku();
@@ -863,9 +870,12 @@
         transition: padding 0.3s ease-out, background 0.25s ease, opacity 0.25s ease;
       }
 
-      /* Eser Alanı */
+      /* Eser Alanı - oluklu mukavva dokusu */
       .olga-art, .olga-art-single{
-        background: #d0d0d0;
+        background:
+          repeating-linear-gradient(0deg, rgba(160,120,70,0.25) 0px, rgba(200,170,130,0.12) 1px, rgba(140,100,55,0.18) 2px, transparent 3px, transparent 5px),
+          repeating-linear-gradient(90deg, rgba(0,0,0,0.03) 0px, rgba(255,255,255,0.02) 1px, transparent 2px),
+          #b8976a;
         box-sizing:border-box;
         transition: all 0.3s ease-out;
       }
@@ -1689,7 +1699,7 @@
       }
 
       if (activeArt) {
-        activeArt.style.background = "#d0d0d0";
+        activeArt.style.background = ART_BG_TEXTURE;
       }
 
       if (glass) glass.style.display = "none";
@@ -1809,7 +1819,7 @@
 
     // Eser alanı
     if (activeArt) {
-      activeArt.style.background = "#d0d0d0";
+      activeArt.style.background = ART_BG_TEXTURE;
     }
 
     // Frame arka planını SADECE gerçek çerçeve varken paspartu dokusuyla doldur
