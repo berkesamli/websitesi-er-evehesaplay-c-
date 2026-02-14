@@ -823,7 +823,7 @@
         display:flex;
         align-items:center;
         justify-content:center;
-        box-sizing:border-box;
+        box-sizing:content-box; /* border-image için content-box gerekli - border ayrıca eklenir */
         transition: width 0.35s ease-out, height 0.35s ease-out, border-width 0.35s ease-out;
         position: relative;
         z-index: 1;
