@@ -784,10 +784,7 @@
         height:240px;
         border:2px dashed #e0d6cc;
         border-radius:14px;
-        background:
-          repeating-linear-gradient(0deg, rgba(160,120,70,0.18) 0px, rgba(200,170,130,0.09) 1px, rgba(140,100,55,0.12) 2px, transparent 3px, transparent 5px),
-          repeating-linear-gradient(90deg, rgba(0,0,0,0.02) 0px, rgba(255,255,255,0.015) 1px, transparent 2px),
-          #c4a882;
+        background: linear-gradient(135deg, #f5f2ee 0%, #ebe7e1 100%);
         display:flex;
         align-items:center;
         justify-content:center;
@@ -1116,6 +1113,86 @@
         }
       }
 
+      /* ========== PROGRESSIVE DISCLOSURE (WIZARD) ========== */
+      #olga_extra_options.olga-options-locked {
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        margin-top: 0;
+        padding: 0;
+        border-color: transparent;
+        transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity 0.4s ease,
+                    margin-top 0.3s ease,
+                    padding 0.3s ease;
+        pointer-events: none;
+      }
+      #olga_extra_options.olga-options-unlocked {
+        opacity: 1;
+        max-height: 2000px;
+        overflow: visible;
+        pointer-events: auto;
+        transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity 0.4s ease 0.1s,
+                    margin-top 0.3s ease,
+                    padding 0.3s ease;
+      }
+
+      /* Wizard prompt - dimension input guidance */
+      .olga-wizard-prompt {
+        text-align: center;
+        padding: 20px 16px;
+        color: #8c7e6a;
+        font-size: 13px;
+        line-height: 1.6;
+        border: 2px dashed #e0d6cc;
+        border-radius: 12px;
+        margin-top: 14px;
+        background: linear-gradient(135deg, #fdfcfb 0%, #f7f4f1 100%);
+        animation: olga-fadeIn 0.4s ease-out;
+      }
+      .olga-wizard-prompt-icon {
+        font-size: 24px;
+        display: block;
+        margin-bottom: 6px;
+      }
+      .olga-wizard-prompt strong {
+        color: rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b});
+      }
+
+      /* Summary empty state */
+      .olga-summary-empty-state {
+        text-align: center;
+        padding: 20px 16px;
+        color: #8c7e6a;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      .olga-summary-empty-state .olga-summary-cta-icon {
+        font-size: 28px;
+        display: block;
+        margin-bottom: 6px;
+      }
+      .cc-summary-box.olga-summary-hidden > div:not(.olga-summary-empty-state):not(#olga_cost_breakdown) {
+        display: none;
+      }
+      #olga_cost_breakdown.olga-hidden {
+        display: none;
+      }
+
+      /* Buttons disabled state */
+      .cc-panel button[disabled],
+      #olga_whatsapp_btn[disabled] {
+        opacity: 0.45 !important;
+        cursor: not-allowed !important;
+        pointer-events: none;
+      }
+
+      /* Mobile preview slot */
+      #olga_mobile_preview_slot {
+        /* Empty placeholder - takes no space when empty */
+      }
+
       /* ========== REDUCED MOTION ========== */
       @media (prefers-reduced-motion: reduce) {
         *, *::before, *::after {
@@ -1222,7 +1299,30 @@
           </div>
         </div>
       `;
+      block.classList.add("olga-options-locked");
       leftPanel.appendChild(block);
+    }
+
+    // Wizard prompt - guides user to enter dimensions first
+    if (!document.getElementById("olga_wizard_prompt")) {
+      const prompt = document.createElement("div");
+      prompt.id = "olga_wizard_prompt";
+      prompt.className = "olga-wizard-prompt";
+      prompt.innerHTML = `
+        <span class="olga-wizard-prompt-icon">📐</span>
+        Yukarıdan <strong>sanat eseri ölçüsünü girin</strong> veya yaygın boyutlardan seçin.<br>
+        Cam ve paspartu seçenekleri otomatik olarak görünecektir.
+      `;
+      const extraOpts = document.getElementById("olga_extra_options");
+      if (extraOpts && leftPanel) leftPanel.insertBefore(prompt, extraOpts);
+    }
+
+    // Mobile preview slot - preview moves here on mobile for better UX
+    if (!document.getElementById("olga_mobile_preview_slot")) {
+      const slot = document.createElement("div");
+      slot.id = "olga_mobile_preview_slot";
+      const extraOpts = document.getElementById("olga_extra_options");
+      if (extraOpts && leftPanel) leftPanel.insertBefore(slot, document.getElementById("olga_wizard_prompt") || extraOpts);
     }
 
     if (rightPanel && !document.getElementById("olga_preview_card")) {
@@ -1284,7 +1384,25 @@
       summaryBox.appendChild(wrap);
     }
 
-    // ✅ WhatsApp butonu (HTML’ye dokunmadan otomatik ekle)
+    // Summary empty state - guidance when no dimensions entered
+    if (summaryBox && !document.getElementById("olga_summary_empty")) {
+      summaryBox.classList.add("olga-summary-hidden");
+      const emptyState = document.createElement("div");
+      emptyState.id = "olga_summary_empty";
+      emptyState.className = "olga-summary-empty-state";
+      emptyState.innerHTML = `
+        <span class="olga-summary-cta-icon">📋</span>
+        Ölçü girerek başlayın.<br>
+        Fiyat detayları burada görünecek.
+      `;
+      summaryBox.prepend(emptyState);
+    }
+
+    // Cost breakdown starts hidden
+    const costBreakdown = document.getElementById("olga_cost_breakdown");
+    if (costBreakdown) costBreakdown.classList.add("olga-hidden");
+
+    // ✅ WhatsApp butonu (HTML'ye dokunmadan otomatik ekle)
     if (rightPanel && !document.getElementById("olga_whatsapp_btn")) {
       const pdfBtn = rightPanel.querySelector('button[onclick="createPDF()"]');
       const waBtn = document.createElement("button");
@@ -1827,12 +1945,12 @@
       if (frameImage) frameImage.style.display = "none";
 
       matOuter.style.padding = "15px";
-      matOuter.style.background = "#ffffff";
+      matOuter.style.background = ART_BG_TEXTURE;
       bevelOuter.style.padding = `${bevelPx}px`;
-      bevelOuter.style.background = "#ffffff";
+      bevelOuter.style.background = ART_BG_TEXTURE;
       // Fallback modda (gerçek çerçeve yok) background siyah kalmalı ki çerçeve görünsün
       if (hasRealFrame) {
-        frame.style.background = "#ffffff";
+        frame.style.background = ART_BG_TEXTURE;
       } else {
         frame.style.background = "";  // CSS default (#000000) kullanılsın
       }
@@ -1999,6 +2117,73 @@
     }
   }
 
+  /* ---------------- Progressive Disclosure (Wizard) ---------------- */
+
+  let _prevHasDimensions = false;
+
+  function updateWizardState(hasDimensions) {
+    const extraOpts = document.getElementById("olga_extra_options");
+    const wizardPrompt = document.getElementById("olga_wizard_prompt");
+    const summaryBox = document.querySelector(".cc-summary-box");
+    const summaryEmpty = document.getElementById("olga_summary_empty");
+    const costBreakdown = document.getElementById("olga_cost_breakdown");
+    const pdfBtn = document.querySelector('button[onclick="createPDF()"]');
+    const waBtn = document.getElementById("olga_whatsapp_btn");
+
+    if (hasDimensions) {
+      // Unlock options with animation
+      if (extraOpts) {
+        extraOpts.classList.remove("olga-options-locked");
+        extraOpts.classList.add("olga-options-unlocked");
+      }
+      if (wizardPrompt) wizardPrompt.style.display = "none";
+      if (summaryBox) summaryBox.classList.remove("olga-summary-hidden");
+      if (summaryEmpty) summaryEmpty.style.display = "none";
+      if (costBreakdown) costBreakdown.classList.remove("olga-hidden");
+      if (pdfBtn) pdfBtn.disabled = false;
+      if (waBtn) waBtn.disabled = false;
+
+      if (!_prevHasDimensions) {
+        announceToSR("Cam ve paspartu seçenekleri görünür oldu");
+      }
+    } else {
+      // Lock options
+      if (extraOpts) {
+        extraOpts.classList.remove("olga-options-unlocked");
+        extraOpts.classList.add("olga-options-locked");
+      }
+      if (wizardPrompt) wizardPrompt.style.display = "";
+      if (summaryBox) summaryBox.classList.add("olga-summary-hidden");
+      if (summaryEmpty) summaryEmpty.style.display = "";
+      if (costBreakdown) costBreakdown.classList.add("olga-hidden");
+      if (pdfBtn) pdfBtn.disabled = true;
+      if (waBtn) waBtn.disabled = true;
+    }
+
+    _prevHasDimensions = hasDimensions;
+  }
+
+  function handleResponsiveLayout() {
+    const preview = document.getElementById("olga_preview_card");
+    if (!preview) return;
+
+    const mobileSlot = document.getElementById("olga_mobile_preview_slot");
+    const rightPanel = document.querySelectorAll(".cc-container .cc-panel")[1];
+    const summaryBox = rightPanel ? rightPanel.querySelector(".cc-summary-box") : null;
+
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
+    if (isMobile && mobileSlot) {
+      if (preview.parentElement !== mobileSlot) {
+        mobileSlot.appendChild(preview);
+      }
+    } else if (rightPanel && summaryBox) {
+      if (preview.parentElement !== rightPanel) {
+        rightPanel.insertBefore(preview, summaryBox);
+      }
+    }
+  }
+
   /* ---------------- Hesap ---------------- */
 
   function calculate() {
@@ -2158,6 +2343,7 @@
     if (totalSizeEl) totalSizeEl.textContent = (totalWMM > 0 && totalHMM > 0) ? `${totalWMM}×${totalHMM} mm` : "-";
 
     updateLivePreview();
+    updateWizardState(w > 0 && h > 0);
   }
 
   /* =========================================================
@@ -2382,7 +2568,10 @@
   function togglePresets() {
     const box = document.getElementById("presetSizes");
     if (!box) return;
-    box.style.display = (box.style.display === "none" || !box.style.display) ? "flex" : "none";
+    const isHidden = (box.style.display === "none" || !box.style.display);
+    box.style.display = isHidden ? "flex" : "none";
+    const toggle = document.querySelector(".preset-size-toggle");
+    if (toggle) toggle.textContent = isHidden ? "Yaygın boyutları gizle" : "Yaygın boyutları göster";
   }
   window.togglePresets = togglePresets;
 
@@ -2425,6 +2614,17 @@
     });
 
     bindPresetClicks();
+
+    // Show presets by default for better discoverability
+    const presetBox = document.getElementById("presetSizes");
+    if (presetBox) presetBox.style.display = "flex";
+    const presetToggle = document.querySelector(".preset-size-toggle");
+    if (presetToggle) presetToggle.textContent = "Yaygın boyutları gizle";
+
+    // Handle responsive layout (moves preview on mobile)
+    handleResponsiveLayout();
+    window.addEventListener("resize", debounce(handleResponsiveLayout, 250));
+
     calculate();
 
     // Announce ready state
