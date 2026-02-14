@@ -1762,9 +1762,8 @@
         frameImage.style.width = `${contentW + frameBorderPx * 2}px`;
         frameImage.style.height = `${contentH + frameBorderPx * 2}px`;
 
-        // Kanal etkisi: çerçeve iç kenarı paspartunun/eserin üzerine ~3px biner
-        const overlap = 3;
-        frameImage.style.borderWidth = `${frameBorderPx + overlap}px`;
+        // Çerçeve iç kenarı = paspartu/eser dış kenarı (tam yapışık, boşluk yok)
+        frameImage.style.borderWidth = `${frameBorderPx}px`;
         frameImage.style.borderImageSource = `url('${realFrameUrl}')`;
         frameImage.style.borderImageSlice = frameSlice;
         frameImage.style.borderImageRepeat = 'stretch';
@@ -1788,11 +1787,9 @@
     const cLeft = hasMatEdges && STATE.matLeft > 0 ? Math.max(minMatPx, Math.min(rawLeft, (contentW - 20) / 2)) : 0;
     const cRight = hasMatEdges && STATE.matRight > 0 ? Math.max(minMatPx, Math.min(rawRight, (contentW - 20) / 2)) : 0;
 
-    // Eser boyutları - paspartu için yer bırak
-    // Paspartu yoksa boşluk bırakma, varsa 10px bırak
-    const artGap = hasMatEdges ? 10 : 0;
-    const artWpx = Math.max(20, contentW - cLeft - cRight - artGap);
-    const artHpx = Math.max(20, contentH - cTop - cBottom - artGap);
+    // Eser boyutları - paspartu kenarları kadar küçült
+    const artWpx = Math.max(20, contentW - cLeft - cRight);
+    const artHpx = Math.max(20, contentH - cTop - cBottom);
 
     // ========== ÇİFT PASPARTU ==========
     if (isDouble) {
