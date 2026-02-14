@@ -96,8 +96,8 @@
   };
 
   // Tüm çerçeveler için sabit değerler
-  const FRAME_SLICE = "33%";
-  const FRAME_BORDER_SCALE = 1.5;
+  const FRAME_SLICE = "21%";
+  const FRAME_BORDER_SCALE = 1.3;
 
   // Çerçeve verilerini SKU'dan al (url ve slice)
   function getFrameData() {
@@ -1817,11 +1817,11 @@
       activeArt.style.background = "#d0d0d0";
     }
 
-    // Frame arka planını SADECE gerçek çerçeve varken paspartu rengiyle doldur
-    // Fallback modda (padding = çerçeve) background siyah kalmalı ki çerçeve görünsün
+    // Frame arka planını SADECE gerçek çerçeve varken paspartu dokusuyla doldur
+    // Kadife/altın/gümüş seçilince frame dolgusu da aynı gradient/texture olur
     if (hasRealFrame) {
       if (hasMatEdges) {
-        frame.style.background = STATE.matColorHex || "#ffffff";
+        frame.style.background = getMatPreviewBackground();
       } else {
         frame.style.background = "#d0d0d0";
       }
