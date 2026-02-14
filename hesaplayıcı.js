@@ -1098,6 +1098,24 @@
         }
       }
 
+      /* ========== MOBILE PRESET BUTTONS 3-COLUMN FIX ========== */
+      .preset-btn {
+        min-width: 0 !important;
+        padding: 6px 4px !important;
+      }
+      @media (max-width: 768px) {
+        .preset-btn {
+          flex: 0 0 calc(33.333% - 7px) !important;
+          max-width: calc(33.333% - 7px) !important;
+          padding: 6px 2px !important;
+          font-size: 11px !important;
+        }
+        .preset-buttons {
+          gap: 6px !important;
+          padding: 8px !important;
+        }
+      }
+
       /* ========== REDUCED MOTION ========== */
       @media (prefers-reduced-motion: reduce) {
         *, *::before, *::after {
