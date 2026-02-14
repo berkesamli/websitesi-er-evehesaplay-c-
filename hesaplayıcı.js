@@ -86,7 +86,10 @@
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/5bc0e7d1-c8c9-451b-98c8-f0412188e500/image_1080.webp",
     },
     "GB139-1211T": {
-      url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/48479c0b-c501-4ee3-83b7-a2f061493c91/image_1080.webp",
+      url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/d8342518-97a5-4c14-bb26-0d2b09d8b1b9/image_1080.webp",
+    },
+    "GG128-3110-P": {
+      url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/476aee5a-3b63-4802-8470-3c7bf46d506b/image_1080.webp",
     },
     // Yeni çerçeveler: sadece url ekleyin
     // "SKU-KODU": { url: "https://cdn.../gorsel.webp" },
@@ -94,7 +97,7 @@
 
   // Tüm çerçeveler için sabit değerler
   const FRAME_SLICE = "33%";
-  const FRAME_BORDER_SCALE = 1.0;
+  const FRAME_BORDER_SCALE = 1.5;
 
   // Çerçeve verilerini SKU'dan al (url ve slice)
   function getFrameData() {
@@ -1660,7 +1663,7 @@
 
     // Varsayılan durum (ölçü girilmemiş)
     if (!(STATE.artWMM > 0 && STATE.artHMM > 0) || boxW < 50 || boxH < 50) {
-      const defaultBorderPx = hasRealFrame ? Math.max(12, Math.round(25 * FRAME_BORDER_SCALE)) : 15;
+      const defaultBorderPx = hasRealFrame ? Math.max(15, Math.round(35 * FRAME_BORDER_SCALE)) : 15;
       frame.style.width = "200px";
       frame.style.height = "200px";
 
@@ -1709,7 +1712,7 @@
     const totalH = Math.max(STATE.totalHMM, STATE.artHMM);
 
     // Çerçeve kalınlığı - gerçek çerçeve varsa modelin borderScale'ine göre orantılı
-    const baseFrameBorderPx = Math.max(18, Math.min(30, Math.round(Math.min(availW, availH) * 0.12)));
+    const baseFrameBorderPx = Math.max(22, Math.min(48, Math.round(Math.min(availW, availH) * 0.16)));
     const frameBorderPx = hasRealFrame ? Math.max(8, Math.round(baseFrameBorderPx * FRAME_BORDER_SCALE)) : baseFrameBorderPx;
 
     const innerW = Math.max(40, availW - frameBorderPx * 2);
