@@ -836,14 +836,17 @@
         justify-content:center;
         box-sizing:border-box;
         box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        transition: width 0.35s ease-out, height 0.35s ease-out, padding 0.35s ease-out;
+        border-style: solid;
+        border-width: 0;
+        border-color: transparent;
+        border-image-repeat: stretch;
+        transition: width 0.35s ease-out, height 0.35s ease-out, padding 0.35s ease-out, border-width 0.35s ease-out;
         position: relative;
       }
 
-      /* Gerçek görsel varken - çerçeve arkası transparent (paspartu çerçevenin altında devam etmez) */
+      /* Gerçek görsel varken - çerçeve arkası transparent */
       .olga-frame-wrapper.has-real-frame .olga-frame {
         background: transparent !important;
-        box-shadow: none !important;
       }
 
       /* Gerçek görsel varken bevel şeffaf olsun */
@@ -1691,25 +1694,21 @@
       const defaultBorderPx = hasRealFrame ? Math.max(5, Math.round(10 * frameBorderScale)) : 10;
       frame.style.width = "160px";
       frame.style.height = "160px";
-      frame.style.padding = defaultBorderPx + "px";
 
-      // Gerçek çerçeve görseli (varsayılan durumda)
-      if (frameWrapper && frameImage) {
-        if (hasRealFrame) {
-          const defaultFrameWidth = Math.max(8, Math.round(20 * frameBorderScale));
-          frameWrapper.classList.add("has-real-frame");
-          frameImage.style.display = "block";
-          frameImage.style.width = "160px";
-          frameImage.style.height = "160px";
-          frameImage.style.borderWidth = (defaultFrameWidth + 3) + "px";
-          frameImage.style.borderImageSource = `url('${realFrameUrl}')`;
-          frameImage.style.borderImageSlice = frameSlice;
-          frameImage.style.borderImageRepeat = 'stretch';
-        } else {
-          frameWrapper.classList.remove("has-real-frame");
-          frameImage.style.display = "none";
-        }
+      // Gerçek çerçeve - border-image doğrudan frame'e
+      if (hasRealFrame) {
+        frameWrapper.classList.add("has-real-frame");
+        frame.style.padding = "0";
+        frame.style.borderWidth = defaultBorderPx + "px";
+        frame.style.borderImageSource = `url('${realFrameUrl}')`;
+        frame.style.borderImageSlice = frameSlice;
+      } else {
+        frameWrapper.classList.remove("has-real-frame");
+        frame.style.padding = defaultBorderPx + "px";
+        frame.style.borderWidth = "0";
+        frame.style.borderImageSource = "none";
       }
+      if (frameImage) frameImage.style.display = "none";
 
       matOuter.style.padding = "15px";
       matOuter.style.background = "#ffffff";
@@ -1739,7 +1738,6 @@
     // Çerçeve kalınlığı - gerçek çerçeve varsa modelin borderScale'ine göre orantılı
     const baseFrameBorderPx = Math.max(18, Math.min(30, Math.round(Math.min(availW, availH) * 0.12)));
     const frameBorderPx = hasRealFrame ? Math.max(8, Math.round(baseFrameBorderPx * frameBorderScale)) : baseFrameBorderPx;
-    frame.style.padding = frameBorderPx + "px";
 
     const innerW = Math.max(40, availW - frameBorderPx * 2);
     const innerH = Math.max(40, availH - frameBorderPx * 2);
@@ -1752,26 +1750,25 @@
     frame.style.width = `${contentW + frameBorderPx * 2}px`;
     frame.style.height = `${contentH + frameBorderPx * 2}px`;
 
-    // ========== GERÇEK ÇERÇEVE GÖRSELİ (9-slice border-image) ==========
-    if (frameWrapper && frameImage) {
-      if (hasRealFrame) {
-        frameWrapper.classList.add("has-real-frame");
-        frameImage.style.display = "block";
-
-        // Çerçeve boyutları
-        frameImage.style.width = `${contentW + frameBorderPx * 2}px`;
-        frameImage.style.height = `${contentH + frameBorderPx * 2}px`;
-
-        // Çerçeve iç kenarı = paspartu/eser dış kenarı (tam yapışık, boşluk yok)
-        frameImage.style.borderWidth = `${frameBorderPx}px`;
-        frameImage.style.borderImageSource = `url('${realFrameUrl}')`;
-        frameImage.style.borderImageSlice = frameSlice;
-        frameImage.style.borderImageRepeat = 'stretch';
-      } else {
-        frameWrapper.classList.remove("has-real-frame");
-        frameImage.style.display = "none";
-      }
+    // ========== ÇERÇEVE DOKUSU (border-image doğrudan .olga-frame'e) ==========
+    // border-image frame elementine uygulanınca iç kenarı ile içerik alanı
+    // (paspartu/eser) arasında boşluk oluşması IMKANSIZ olur.
+    if (hasRealFrame) {
+      frameWrapper.classList.add("has-real-frame");
+      // border olarak uygula (padding değil) - doku doğrudan border alanına çizilir
+      frame.style.padding = "0";
+      frame.style.borderWidth = frameBorderPx + "px";
+      frame.style.borderImageSource = `url('${realFrameUrl}')`;
+      frame.style.borderImageSlice = frameSlice;
+    } else {
+      frameWrapper.classList.remove("has-real-frame");
+      // Fallback: düz renk çerçeve - padding ile
+      frame.style.padding = frameBorderPx + "px";
+      frame.style.borderWidth = "0";
+      frame.style.borderImageSource = "none";
     }
+    // frame-image elementini artık kullanmıyoruz
+    if (frameImage) frameImage.style.display = "none";
 
     // Paspartu kenar ölçüleri (px) - minimum 8px görünür olsun
     const minMatPx = 8; // Minimum paspartu kalınlığı (px)
