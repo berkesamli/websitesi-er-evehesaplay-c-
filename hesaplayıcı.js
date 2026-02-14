@@ -1006,6 +1006,95 @@
         border-top: 6px solid #2b241b;
       }
 
+      /* ========== COLLAPSIBLE SECTIONS ========== */
+      .olga-collapsible-header {
+        font-weight: 800;
+        color: #2b241b;
+        font-size: 14px;
+        letter-spacing: -0.3px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+        padding: 6px 0;
+        margin-bottom: 2px;
+        border-radius: 8px;
+        transition: background 0.2s ease;
+      }
+      .olga-collapsible-header:hover {
+        background: rgba(0,0,0,0.03);
+      }
+      .olga-collapsible-header::before {
+        content: '';
+        width: 4px;
+        height: 16px;
+        background: linear-gradient(180deg, rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}), #c9a66b);
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+      .olga-collapsible-chevron {
+        margin-left: auto;
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        flex-shrink: 0;
+      }
+      .olga-collapsible-chevron svg {
+        width: 12px;
+        height: 12px;
+        fill: none;
+        stroke: #8c7e6a;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .olga-collapsible-header.open .olga-collapsible-chevron {
+        transform: rotate(180deg);
+      }
+      .olga-collapsible-badge {
+        font-size: 11px;
+        font-weight: 600;
+        color: rgb(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b});
+        background: rgba(${BRAND_RGB.r},${BRAND_RGB.g},${BRAND_RGB.b}, 0.1);
+        padding: 2px 8px;
+        border-radius: 12px;
+        transition: opacity 0.25s ease;
+      }
+      .olga-collapsible-header.open .olga-collapsible-badge {
+        opacity: 0.4;
+      }
+      .olga-collapsible-body {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+        opacity: 0;
+      }
+      .olga-collapsible-body.open {
+        max-height: 600px;
+        opacity: 1;
+      }
+
+      /* ========== MOBILE PREVIEW OPTIMIZATION ========== */
+      @media (max-width: 600px) {
+        .olga-preview-box {
+          height: 340px !important;
+          padding: 22px !important;
+        }
+        .olga-preview-card {
+          padding: 14px;
+        }
+      }
+      @media (max-width: 400px) {
+        .olga-preview-box {
+          height: 380px !important;
+          padding: 18px !important;
+        }
+      }
+
       /* ========== REDUCED MOTION ========== */
       @media (prefers-reduced-motion: reduce) {
         *, *::before, *::after {
@@ -1042,8 +1131,14 @@
       `).join("");
 
       block.innerHTML = `
-        <div class="olga-title">Cam Seçimi</div>
-        <div class="olga-grid" id="olga_glass_grid">${glassHTML}</div>
+        <div class="olga-collapsible-header" id="olga_glass_toggle" role="button" aria-expanded="false" tabindex="0">
+          Cam Seçimi
+          <span class="olga-collapsible-badge" id="olga_glass_badge">Cam Yok</span>
+          <span class="olga-collapsible-chevron"><svg viewBox="0 0 12 12"><polyline points="2,4 6,8 10,4"/></svg></span>
+        </div>
+        <div class="olga-collapsible-body" id="olga_glass_collapse">
+          <div class="olga-grid" id="olga_glass_grid">${glassHTML}</div>
+        </div>
 
         <div style="height:12px"></div>
 
@@ -1417,6 +1512,10 @@
         STATE.glassPriceM2 = price;
         STATE.glassLabel = found?.label || "Cam";
 
+        // Badge güncelle
+        const badge = document.getElementById("olga_glass_badge");
+        if (badge) badge.textContent = found?.label || "Cam Yok";
+
         announceToSR(`${found?.label || "Cam"} seçildi`);
         calculate();
       });
@@ -1427,6 +1526,25 @@
           e.preventDefault();
           const chip = e.target.closest(".olga-chip");
           if (chip) chip.click();
+        }
+      });
+    }
+
+    // ========== CAM SEÇİMİ COLLAPSIBLE TOGGLE ==========
+    const glassToggle = document.getElementById("olga_glass_toggle");
+    const glassCollapse = document.getElementById("olga_glass_collapse");
+    if (glassToggle && glassCollapse && !glassToggle.__bound) {
+      glassToggle.__bound = true;
+      const toggleGlass = () => {
+        const isOpen = glassToggle.classList.toggle("open");
+        glassCollapse.classList.toggle("open");
+        glassToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      };
+      glassToggle.addEventListener("click", toggleGlass);
+      glassToggle.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggleGlass();
         }
       });
     }
