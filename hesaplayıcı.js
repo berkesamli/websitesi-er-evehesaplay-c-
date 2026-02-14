@@ -774,7 +774,7 @@
         height:240px;
         border:2px dashed #e0d6cc;
         border-radius:14px;
-        background: linear-gradient(135deg, #faf8f6 0%, #f5f2ef 100%);
+        background: #ffffff;
         display:flex;
         align-items:center;
         justify-content:center;
@@ -825,9 +825,7 @@
 
       .olga-frame{
         background: #2d2d2d;
-        display:flex;
-        align-items:stretch;
-        justify-content:stretch;
+        display:grid;
         box-sizing:border-box;
         box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         border-style: solid;
@@ -843,55 +841,35 @@
         background: transparent !important;
       }
 
-      /* Gerçek görsel varken bevel şeffaf olsun */
-      .olga-frame-wrapper.has-real-frame .olga-bevel-outer,
-      .olga-frame-wrapper.has-real-frame .olga-bevel-inner {
-        background: transparent !important;
-      }
-
-
       /* Dış Paspartu */
       .olga-mat-outer{
         background:transparent;
-        display:flex;
-        align-items:stretch;
-        justify-content:stretch;
+        display:grid;
         box-sizing:border-box;
-        flex:1;
         transition: padding 0.3s ease-out, background 0.25s ease;
       }
 
       /* 45° Bevel - Beyaz kesim çizgisi */
       .olga-bevel-outer, .olga-bevel-inner{
         background: transparent;
-        display:flex;
-        align-items:stretch;
-        justify-content:stretch;
+        display:grid;
         box-sizing:border-box;
-        flex:1;
         transition: padding 0.3s ease-out;
       }
 
       /* İç Paspartu */
       .olga-mat-inner{
         background:transparent;
-        display:flex;
-        align-items:stretch;
-        justify-content:stretch;
+        display:grid;
         box-sizing:border-box;
-        flex:1;
         transition: padding 0.3s ease-out, background 0.25s ease, opacity 0.25s ease;
       }
 
       /* Eser Alanı */
       .olga-art, .olga-art-single{
         background: #d0d0d0;
-        display:flex;
-        align-items:center;
-        justify-content:center;
         box-sizing:border-box;
-        flex:1;
-        transition: width 0.3s ease-out, height 0.3s ease-out;
+        transition: all 0.3s ease-out;
       }
 
       .olga-glass{
@@ -1676,11 +1654,11 @@
     // 45° kesim (bevel) kalınlığı
     const bevelPx = 2;
 
-    // Görünürlük ayarları
-    if (matInner) matInner.style.display = isDouble ? "block" : "none";
-    if (bevelInner) bevelInner.style.display = isDouble ? "flex" : "none";
-    if (artSingle) artSingle.style.display = isDouble ? "none" : "flex";
-    if (art) art.style.display = isDouble ? "flex" : "none";
+    // Görünürlük ayarları (grid layout)
+    if (matInner) matInner.style.display = isDouble ? "grid" : "none";
+    if (bevelInner) bevelInner.style.display = isDouble ? "grid" : "none";
+    if (artSingle) artSingle.style.display = isDouble ? "none" : "block";
+    if (art) art.style.display = isDouble ? "block" : "none";
 
     // Aktif eser alanı
     const activeArt = isDouble ? art : artSingle;
