@@ -72,27 +72,33 @@
   // ========== ÇERÇEVE GÖRSELLERİ (SKU -> URL ve kalınlık) ==========
   // Her çerçeve modeli için:
   // - url: Görsel linki
-  // - slice: Border-image slice değeri (çerçeve kalınlığına göre ayarlanır)
-  //   Kalın çerçeveler için: %15-20
-  //   Orta kalınlık için: %10-14
-  //   İnce çerçeveler için: %6-9
+  // - slice: Border-image slice değeri (görselin nasıl dilimleneceği)
+  // - borderScale: Ekrandaki çerçeve kalınlık oranı (1.0 = en kalın referans)
+  //   Kalın çerçeveler: 1.0
+  //   Orta kalınlık: 0.6-0.8
+  //   İnce çerçeveler: 0.4-0.55
+  //   Çok ince çerçeveler: 0.25-0.35
   const FRAME_DATA = {
     "GD154-4313-BA": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp",
-      slice: "15%"  // Kalın çerçeve
+      slice: "15%",
+      borderScale: 1.0   // Kalın çerçeve
     },
     "GD154-3427-BA": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/5bc0e7d1-c8c9-451b-98c8-f0412188e500/image_1080.webp",
-      slice: "8%"   // İnce çerçeve
+      slice: "8%",
+      borderScale: 0.55  // İnce çerçeve
     },
     "GB139-1211T": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/48479c0b-c501-4ee3-83b7-a2f061493c91/image_1080.webp",
-      slice: "4%"   // Çok ince çerçeve
+      slice: "4%",
+      borderScale: 0.3   // Çok ince çerçeve
     },
     // Yeni çerçeveler buraya eklenecek:
     // "SKU-KODU": {
     //   url: "https://cdn.../gorsel.webp",
-    //   slice: "12%"  // Çerçeve kalınlığına göre ayarla
+    //   slice: "12%",
+    //   borderScale: 0.7  // Çerçeve kalınlığına göre ayarla
     // },
   };
 
@@ -834,9 +840,9 @@
         position: relative;
       }
 
-      /* Gerçek görsel varken - çerçeve arka planını paspartu rengiyle doldur */
+      /* Gerçek görsel varken - çerçeve arkası transparent (paspartu çerçevenin altında devam etmez) */
       .olga-frame-wrapper.has-real-frame .olga-frame {
-        background: var(--mat-color, #ffffff) !important;
+        background: transparent !important;
         box-shadow: none !important;
       }
 
@@ -1659,6 +1665,7 @@
     const frameData = getFrameData();
     const realFrameUrl = frameData ? frameData.url : null;
     const frameSlice = frameData ? frameData.slice : "15%";
+    const frameBorderScale = frameData ? (frameData.borderScale || 1.0) : 1.0;
     const hasRealFrame = !!realFrameUrl;
 
     const boxW = box.clientWidth;
@@ -1681,18 +1688,20 @@
 
     // Varsayılan durum (ölçü girilmemiş)
     if (!(STATE.artWMM > 0 && STATE.artHMM > 0) || boxW < 50 || boxH < 50) {
+      const defaultBorderPx = hasRealFrame ? Math.max(5, Math.round(10 * frameBorderScale)) : 10;
       frame.style.width = "160px";
       frame.style.height = "160px";
-      frame.style.padding = "10px";
+      frame.style.padding = defaultBorderPx + "px";
 
       // Gerçek çerçeve görseli (varsayılan durumda)
       if (frameWrapper && frameImage) {
         if (hasRealFrame) {
+          const defaultFrameWidth = Math.max(8, Math.round(20 * frameBorderScale));
           frameWrapper.classList.add("has-real-frame");
           frameImage.style.display = "block";
           frameImage.style.width = "160px";
           frameImage.style.height = "160px";
-          frameImage.style.borderWidth = "20px";
+          frameImage.style.borderWidth = (defaultFrameWidth + 3) + "px";
           frameImage.style.borderImageSource = `url('${realFrameUrl}')`;
           frameImage.style.borderImageSlice = frameSlice;
           frameImage.style.borderImageRepeat = 'stretch';
@@ -1727,8 +1736,9 @@
     const totalW = Math.max(STATE.totalWMM, STATE.artWMM);
     const totalH = Math.max(STATE.totalHMM, STATE.artHMM);
 
-    // Çerçeve kalınlığı - daha büyük görünsün
-    const frameBorderPx = Math.max(18, Math.min(30, Math.round(Math.min(availW, availH) * 0.12)));
+    // Çerçeve kalınlığı - gerçek çerçeve varsa modelin borderScale'ine göre orantılı
+    const baseFrameBorderPx = Math.max(18, Math.min(30, Math.round(Math.min(availW, availH) * 0.12)));
+    const frameBorderPx = hasRealFrame ? Math.max(8, Math.round(baseFrameBorderPx * frameBorderScale)) : baseFrameBorderPx;
     frame.style.padding = frameBorderPx + "px";
 
     const innerW = Math.max(40, availW - frameBorderPx * 2);
@@ -1748,19 +1758,12 @@
         frameWrapper.classList.add("has-real-frame");
         frameImage.style.display = "block";
 
-        // Paspartu rengini CSS değişkeni olarak ayarla (boşlukları doldurmak için)
-        // Paspartu yoksa eser arka plan rengini kullan
-        const hasMat = STATE.matTypePriceM2 > 0;
-        const matColor = hasMat ? getMatPreviewBackground() : '#d0d0d0';
-        frame.style.setProperty('--mat-color', matColor);
-
-        // Çerçeve boyutları (aynı kalıyor)
+        // Çerçeve boyutları
         frameImage.style.width = `${contentW + frameBorderPx * 2}px`;
         frameImage.style.height = `${contentH + frameBorderPx * 2}px`;
 
-        // Çerçeve paspartunun üstüne binsin: border-width artırılıyor
-        // Bu sayede çerçevenin iç kenarı paspartunun dışına taşıyor
-        const overlap = 4;
+        // Kanal etkisi: çerçeve iç kenarı paspartunun/eserin üzerine ~3px biner
+        const overlap = 3;
         frameImage.style.borderWidth = `${frameBorderPx + overlap}px`;
         frameImage.style.borderImageSource = `url('${realFrameUrl}')`;
         frameImage.style.borderImageSlice = frameSlice;
