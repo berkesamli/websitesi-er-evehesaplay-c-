@@ -81,26 +81,20 @@
   const FRAME_DATA = {
     "GD154-4313-BA": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp",
-      slice: "15%",
-      borderScale: 1.0   // Kalın çerçeve
     },
     "GD154-3427-BA": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/5bc0e7d1-c8c9-451b-98c8-f0412188e500/image_1080.webp",
-      slice: "8%",
-      borderScale: 0.55  // İnce çerçeve
     },
     "GB139-1211T": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/48479c0b-c501-4ee3-83b7-a2f061493c91/image_1080.webp",
-      slice: "4%",
-      borderScale: 0.3   // Çok ince çerçeve
     },
-    // Yeni çerçeveler buraya eklenecek:
-    // "SKU-KODU": {
-    //   url: "https://cdn.../gorsel.webp",
-    //   slice: "12%",
-    //   borderScale: 0.7  // Çerçeve kalınlığına göre ayarla
-    // },
+    // Yeni çerçeveler: sadece url ekleyin
+    // "SKU-KODU": { url: "https://cdn.../gorsel.webp" },
   };
+
+  // Tüm çerçeveler için sabit değerler
+  const FRAME_SLICE = "15%";
+  const FRAME_BORDER_SCALE = 1.0;
 
   // Çerçeve verilerini SKU'dan al (url ve slice)
   function getFrameData() {
@@ -832,8 +826,8 @@
       .olga-frame{
         background: #2d2d2d;
         display:flex;
-        align-items:center;
-        justify-content:center;
+        align-items:stretch;
+        justify-content:stretch;
         box-sizing:border-box;
         box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         border-style: solid;
@@ -858,31 +852,34 @@
 
       /* Dış Paspartu */
       .olga-mat-outer{
-        background:#ffffff;
+        background:transparent;
         display:flex;
-        align-items:center;
-        justify-content:center;
+        align-items:stretch;
+        justify-content:stretch;
         box-sizing:border-box;
+        flex:1;
         transition: padding 0.3s ease-out, background 0.25s ease;
       }
 
       /* 45° Bevel - Beyaz kesim çizgisi */
       .olga-bevel-outer, .olga-bevel-inner{
-        background: #ffffff;
+        background: transparent;
         display:flex;
-        align-items:center;
-        justify-content:center;
+        align-items:stretch;
+        justify-content:stretch;
         box-sizing:border-box;
+        flex:1;
         transition: padding 0.3s ease-out;
       }
 
       /* İç Paspartu */
       .olga-mat-inner{
-        background:#ffffff;
+        background:transparent;
         display:flex;
-        align-items:center;
-        justify-content:center;
+        align-items:stretch;
+        justify-content:stretch;
         box-sizing:border-box;
+        flex:1;
         transition: padding 0.3s ease-out, background 0.25s ease, opacity 0.25s ease;
       }
 
@@ -893,6 +890,7 @@
         align-items:center;
         justify-content:center;
         box-sizing:border-box;
+        flex:1;
         transition: width 0.3s ease-out, height 0.3s ease-out;
       }
 
@@ -1667,8 +1665,6 @@
     // Gerçek çerçeve görseli kontrolü
     const frameData = getFrameData();
     const realFrameUrl = frameData ? frameData.url : null;
-    const frameSlice = frameData ? frameData.slice : "15%";
-    const frameBorderScale = frameData ? (frameData.borderScale || 1.0) : 1.0;
     const hasRealFrame = !!realFrameUrl;
 
     const boxW = box.clientWidth;
@@ -1691,7 +1687,7 @@
 
     // Varsayılan durum (ölçü girilmemiş)
     if (!(STATE.artWMM > 0 && STATE.artHMM > 0) || boxW < 50 || boxH < 50) {
-      const defaultBorderPx = hasRealFrame ? Math.max(5, Math.round(10 * frameBorderScale)) : 10;
+      const defaultBorderPx = hasRealFrame ? Math.max(5, Math.round(10 * FRAME_BORDER_SCALE)) : 10;
       frame.style.width = "160px";
       frame.style.height = "160px";
 
@@ -1701,7 +1697,7 @@
         frame.style.padding = "0";
         frame.style.borderWidth = defaultBorderPx + "px";
         frame.style.borderImageSource = `url('${realFrameUrl}')`;
-        frame.style.borderImageSlice = frameSlice;
+        frame.style.borderImageSlice = FRAME_SLICE;
       } else {
         frameWrapper.classList.remove("has-real-frame");
         frame.style.padding = defaultBorderPx + "px";
@@ -1716,8 +1712,6 @@
       bevelOuter.style.background = "#ffffff";
 
       if (activeArt) {
-        activeArt.style.width = "70px";
-        activeArt.style.height = "70px";
         activeArt.style.background = "#d0d0d0";
       }
 
@@ -1737,7 +1731,7 @@
 
     // Çerçeve kalınlığı - gerçek çerçeve varsa modelin borderScale'ine göre orantılı
     const baseFrameBorderPx = Math.max(18, Math.min(30, Math.round(Math.min(availW, availH) * 0.12)));
-    const frameBorderPx = hasRealFrame ? Math.max(8, Math.round(baseFrameBorderPx * frameBorderScale)) : baseFrameBorderPx;
+    const frameBorderPx = hasRealFrame ? Math.max(8, Math.round(baseFrameBorderPx * FRAME_BORDER_SCALE)) : baseFrameBorderPx;
 
     const innerW = Math.max(40, availW - frameBorderPx * 2);
     const innerH = Math.max(40, availH - frameBorderPx * 2);
@@ -1759,7 +1753,7 @@
       frame.style.padding = "0";
       frame.style.borderWidth = frameBorderPx + "px";
       frame.style.borderImageSource = `url('${realFrameUrl}')`;
-      frame.style.borderImageSlice = frameSlice;
+      frame.style.borderImageSlice = FRAME_SLICE;
     } else {
       frameWrapper.classList.remove("has-real-frame");
       // Fallback: düz renk çerçeve - padding ile
@@ -1783,10 +1777,6 @@
     const cBottom = hasMatEdges && STATE.matBottom > 0 ? Math.max(minMatPx, Math.min(rawBottom, (contentH - 20) / 2)) : 0;
     const cLeft = hasMatEdges && STATE.matLeft > 0 ? Math.max(minMatPx, Math.min(rawLeft, (contentW - 20) / 2)) : 0;
     const cRight = hasMatEdges && STATE.matRight > 0 ? Math.max(minMatPx, Math.min(rawRight, (contentW - 20) / 2)) : 0;
-
-    // Eser boyutları - paspartu kenarları kadar küçült
-    const artWpx = Math.max(20, contentW - cLeft - cRight);
-    const artHpx = Math.max(20, contentH - cTop - cBottom);
 
     // ========== ÇİFT PASPARTU ==========
     if (isDouble) {
@@ -1840,10 +1830,8 @@
       }
     }
 
-    // Eser boyutları
+    // Eser alanı - flex:1 + stretch ile otomatik doluyor, sabit boyut gerekmiyor
     if (activeArt) {
-      activeArt.style.width = `${artWpx}px`;
-      activeArt.style.height = `${artHpx}px`;
       activeArt.style.background = "#d0d0d0";
     }
 
