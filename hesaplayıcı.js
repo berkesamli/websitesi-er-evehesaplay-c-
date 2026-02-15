@@ -896,6 +896,25 @@
         line-height: 1.4;
       }
 
+      /* ========== ART UPLOAD ========== */
+      .olga-upload-row{
+        display:flex; align-items:center; gap:8px; margin-top:8px; justify-content:center;
+      }
+      .olga-upload-btn{
+        cursor:pointer; padding:6px 14px; border-radius:8px;
+        border:1px dashed #c9b99a; background:#fdfcfb;
+        color:#8c5919; font-size:12px; font-weight:600;
+        transition:all 0.2s; user-select:none;
+      }
+      .olga-upload-btn:hover{ background:#f5efe7; border-color:#8c5919; }
+      .olga-upload-clear{
+        cursor:pointer; background:none; border:1px solid #ddd;
+        border-radius:50%; width:24px; height:24px;
+        font-size:12px; color:#999; display:inline-flex;
+        align-items:center; justify-content:center; transition:all 0.2s;
+      }
+      .olga-upload-clear:hover{ border-color:#e74c3c; color:#e74c3c; }
+
       /* ========== LOADING STATE ========== */
       .olga-loading {
         position: relative;
@@ -1765,6 +1784,41 @@
         }
       });
     }
+
+    // ========== SANAT ESERİ YÜKLEME BUTONU (dinamik oluştur) ==========
+    const previewCard = document.getElementById("olga_preview_card");
+    if (previewCard && !document.getElementById("olga_art_upload")) {
+      const row = document.createElement("div");
+      row.className = "olga-upload-row";
+      row.innerHTML = `
+        <label for="olga_art_upload" class="olga-upload-btn">Sanat Eserinizi Yükleyin</label>
+        <input type="file" id="olga_art_upload" accept="image/*" style="display:none">
+        <button type="button" id="olga_art_clear" class="olga-upload-clear" style="display:none">&times;</button>
+      `;
+      previewCard.appendChild(row);
+
+      const artUpload = document.getElementById("olga_art_upload");
+      const artClear = document.getElementById("olga_art_clear");
+
+      artUpload.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          STATE.artImageUrl = ev.target.result;
+          if (artClear) artClear.style.display = "inline-flex";
+          calculate();
+        };
+        reader.readAsDataURL(file);
+      });
+
+      artClear.addEventListener("click", () => {
+        STATE.artImageUrl = null;
+        artUpload.value = "";
+        artClear.style.display = "none";
+        calculate();
+      });
+    }
   }
 
   /* =========================================================
@@ -1956,7 +2010,9 @@
       }
 
       if (activeArt) {
-        activeArt.style.background = ART_BG_TEXTURE;
+        activeArt.style.background = STATE.artImageUrl
+          ? `url('${STATE.artImageUrl}') center/cover no-repeat`
+          : ART_BG_TEXTURE;
       }
 
       if (glass) glass.style.display = "none";
@@ -1973,8 +2029,10 @@
     const totalW = Math.max(STATE.totalWMM, STATE.artWMM);
     const totalH = Math.max(STATE.totalHMM, STATE.artHMM);
 
-    // Çerçeve kalınlığı - gerçek çerçeve varsa modelin borderScale'ine göre orantılı
-    const baseFrameBorderPx = Math.max(22, Math.min(48, Math.round(Math.min(availW, availH) * 0.16)));
+    // Perspektif faktörü: küçük eser → kalın çerçeve, büyük eser → ince çerçeve
+    const maxDimMM = Math.max(totalW, totalH);
+    const perspectiveFactor = Math.max(0.6, Math.min(1.4, 400 / maxDimMM));
+    const baseFrameBorderPx = Math.max(16, Math.min(55, Math.round(Math.min(availW, availH) * 0.16 * perspectiveFactor)));
     const frameBorderPx = hasRealFrame ? Math.max(8, Math.round(baseFrameBorderPx * FRAME_BORDER_SCALE)) : baseFrameBorderPx;
 
     const innerW = Math.max(40, availW - frameBorderPx * 2);
@@ -2076,7 +2134,9 @@
 
     // Eser alanı
     if (activeArt) {
-      activeArt.style.background = ART_BG_TEXTURE;
+      activeArt.style.background = STATE.artImageUrl
+        ? `url('${STATE.artImageUrl}') center/cover no-repeat`
+        : ART_BG_TEXTURE;
     }
 
     // Frame arka planını SADECE gerçek çerçeve varken paspartu dokusuyla doldur
