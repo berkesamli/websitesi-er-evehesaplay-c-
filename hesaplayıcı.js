@@ -1998,25 +1998,20 @@
       }
       if (frameImage) frameImage.style.display = "none";
 
-      // Sanat eseri yüklü + gerçek çerçeve → resim frame içini tamamen doldursun
-      // position:absolute ile art doğrudan frame'in content area'sına oturur,
-      // matOuter/bevelOuter'ı tamamen bypass eder → boşluk IMKANSIZ
+      // Sanat eseri yüklü + gerçek çerçeve → resim çerçevenin altından gelir
+      // background-origin:border-box ile resim tüm frame'i kaplar (border dahil)
+      // border-image (çerçeve dokusu) üstte kalır → kenarlar doğal şekilde kesilir
+      // Gerçek hayattaki gibi: tablo çerçevenin altında, çerçeve kenarları tablonun kenarlarını gizler
       const defaultArtFill = STATE.artImageUrl && hasRealFrame;
       matOuter.style.padding = "15px";
       bevelOuter.style.padding = `${bevelPx}px`;
       if (defaultArtFill) {
         matOuter.style.background = "transparent";
         bevelOuter.style.background = "transparent";
-        frame.style.background = "transparent";
+        frame.style.background = `url('${STATE.artImageUrl}') center/cover no-repeat`;
+        frame.style.backgroundOrigin = "border-box";
         if (activeArt) {
-          activeArt.style.position = "absolute";
-          activeArt.style.top = "0";
-          activeArt.style.left = "0";
-          activeArt.style.right = "0";
-          activeArt.style.bottom = "0";
-          activeArt.style.zIndex = "1";
-          activeArt.style.margin = "0";
-          activeArt.style.background = `url('${STATE.artImageUrl}') center/cover no-repeat`;
+          activeArt.style.background = "transparent";
         }
       } else {
         matOuter.style.background = ART_BG_TEXTURE;
@@ -2026,14 +2021,8 @@
         } else {
           frame.style.background = "";  // CSS default (#000000) kullanılsın
         }
+        frame.style.backgroundOrigin = "";
         if (activeArt) {
-          activeArt.style.position = "";
-          activeArt.style.top = "";
-          activeArt.style.left = "";
-          activeArt.style.right = "";
-          activeArt.style.bottom = "";
-          activeArt.style.zIndex = "";
-          activeArt.style.margin = "0";
           activeArt.style.background = ART_BG_TEXTURE;
         }
       }
@@ -2155,29 +2144,15 @@
       }
     }
 
-    // Eser alanı + Frame arka plan dolgusu
+    // Eser alanı + Frame arka planı
     // Paspartu yok + sanat eseri yüklü + gerçek çerçeve →
-    // position:absolute ile art doğrudan frame content area'sına oturur
-    // Ara katmanlar (matOuter/bevelOuter) bypass → boşluk IMKANSIZ
+    // Resim çerçevenin altından gelir (background-origin:border-box)
+    // Çerçeve kenarları resmin kenarlarını doğal şekilde keser
     const artFill = STATE.artImageUrl && !hasMatEdges && hasRealFrame;
     if (activeArt) {
       if (artFill) {
-        activeArt.style.position = "absolute";
-        activeArt.style.top = "0";
-        activeArt.style.left = "0";
-        activeArt.style.right = "0";
-        activeArt.style.bottom = "0";
-        activeArt.style.zIndex = "1";
-        activeArt.style.margin = "0";
-        activeArt.style.background = `url('${STATE.artImageUrl}') center/cover no-repeat`;
+        activeArt.style.background = "transparent";
       } else {
-        activeArt.style.position = "";
-        activeArt.style.top = "";
-        activeArt.style.left = "";
-        activeArt.style.right = "";
-        activeArt.style.bottom = "";
-        activeArt.style.zIndex = "";
-        activeArt.style.margin = "0";
         activeArt.style.background = STATE.artImageUrl
           ? `url('${STATE.artImageUrl}') center/cover no-repeat`
           : ART_BG_TEXTURE;
@@ -2188,13 +2163,18 @@
     if (hasRealFrame) {
       if (hasMatEdges) {
         frame.style.background = getMatPreviewBackground();
+        frame.style.backgroundOrigin = "";
       } else if (artFill) {
-        frame.style.background = "transparent";
+        // Resim tüm frame'i kaplar, border-image üstte kenarları keser
+        frame.style.background = `url('${STATE.artImageUrl}') center/cover no-repeat`;
+        frame.style.backgroundOrigin = "border-box";
       } else {
         frame.style.background = ART_BG_TEXTURE;
+        frame.style.backgroundOrigin = "";
       }
     } else {
       frame.style.background = "";  // CSS default (#000000) kullanılsın
+      frame.style.backgroundOrigin = "";
     }
 
     // Cam efekti
