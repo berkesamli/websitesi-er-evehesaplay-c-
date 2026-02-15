@@ -2134,20 +2134,25 @@
       }
     }
 
-    // Eser alanı
+    // Eser alanı + Frame arka plan dolgusu
+    // Paspartu yok + sanat eseri yüklü + gerçek çerçeve → TEK görsel frame bg'de, art transparent
+    // Böylece iki cover resim farklı ölçeklenmez, tek parça görüntü olur
+    const artOnFrame = STATE.artImageUrl && !hasMatEdges && hasRealFrame;
     if (activeArt) {
-      activeArt.style.background = STATE.artImageUrl
-        ? `url('${STATE.artImageUrl}') center/cover no-repeat`
-        : ART_BG_TEXTURE;
+      if (artOnFrame) {
+        activeArt.style.background = "transparent";
+      } else {
+        activeArt.style.background = STATE.artImageUrl
+          ? `url('${STATE.artImageUrl}') center/cover no-repeat`
+          : ART_BG_TEXTURE;
+      }
     }
 
-    // Frame arka planını SADECE gerçek çerçeve varken paspartu dokusuyla doldur
-    // Kadife/altın/gümüş seçilince frame dolgusu da aynı gradient/texture olur
-    // Sanat eseri yüklenmiş + paspartu yok → frame bg da sanat eseri (boşluk kapanır)
+    // Frame arka planını doldur
     if (hasRealFrame) {
       if (hasMatEdges) {
         frame.style.background = getMatPreviewBackground();
-      } else if (STATE.artImageUrl) {
+      } else if (artOnFrame) {
         frame.style.background = `url('${STATE.artImageUrl}') center/cover no-repeat`;
       } else {
         frame.style.background = ART_BG_TEXTURE;
