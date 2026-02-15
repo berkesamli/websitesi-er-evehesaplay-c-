@@ -1999,13 +1999,21 @@
       if (frameImage) frameImage.style.display = "none";
 
       // Sanat eseri yüklü + gerçek çerçeve → resim çerçevenin altından gelir
-      // background-origin:border-box ile resim tüm frame'i kaplar (border dahil)
-      // border-image (çerçeve dokusu) üstte kalır → kenarlar doğal şekilde kesilir
-      // Gerçek hayattaki gibi: tablo çerçevenin altında, çerçeve kenarları tablonun kenarlarını gizler
+      // background-origin:border-box ile resim frame'i kaplar (border dahil)
+      // CSS border-width azaltılıp border-image-outset ile görsel kalınlık korunur
+      // → Daha az kesme, aynı görsel çerçeve kalınlığı
       const defaultArtFill = STATE.artImageUrl && hasRealFrame;
       matOuter.style.padding = "15px";
       bevelOuter.style.padding = `${bevelPx}px`;
       if (defaultArtFill) {
+        // Kesmeyi azalt: CSS border ince, outset ile görsel kalınlık korunur
+        const cssBorder = Math.round(defaultBorderPx * 0.65);
+        const outset = defaultBorderPx - cssBorder;
+        frame.style.borderWidth = cssBorder + "px";
+        frame.style.borderImageOutset = outset + "px";
+        frame.style.width = `${200 - outset * 2}px`;
+        frame.style.height = `${200 - outset * 2}px`;
+
         matOuter.style.background = "transparent";
         bevelOuter.style.background = "transparent";
         frame.style.background = `url('${STATE.artImageUrl}') center/cover no-repeat`;
@@ -2014,6 +2022,7 @@
           activeArt.style.background = "transparent";
         }
       } else {
+        frame.style.borderImageOutset = "0";
         matOuter.style.background = ART_BG_TEXTURE;
         bevelOuter.style.background = ART_BG_TEXTURE;
         if (hasRealFrame) {
@@ -2145,10 +2154,24 @@
     }
 
     // Eser alanı + Frame arka planı
-    // Paspartu yok + sanat eseri yüklü + gerçek çerçeve →
+    // SADECE: paspartu yok + sanat eseri yüklü + gerçek çerçeve →
     // Resim çerçevenin altından gelir (background-origin:border-box)
-    // Çerçeve kenarları resmin kenarlarını doğal şekilde keser
+    // CSS border azaltılıp outset ile görsel kalınlık korunur → daha az kesme
+    // Paspartu varken → normal davranış (bu blok çalışmaz)
     const artFill = STATE.artImageUrl && !hasMatEdges && hasRealFrame;
+
+    // artFill → border ayarlarını güncelle (kesmeyi azalt)
+    if (artFill) {
+      const cssBorder = Math.round(frameBorderPx * 0.65);
+      const outset = frameBorderPx - cssBorder;
+      frame.style.borderWidth = cssBorder + "px";
+      frame.style.borderImageOutset = outset + "px";
+      frame.style.width = `${contentW + cssBorder * 2}px`;
+      frame.style.height = `${contentH + cssBorder * 2}px`;
+    } else {
+      frame.style.borderImageOutset = "0";
+    }
+
     if (activeArt) {
       if (artFill) {
         activeArt.style.background = "transparent";
@@ -2165,7 +2188,6 @@
         frame.style.background = getMatPreviewBackground();
         frame.style.backgroundOrigin = "";
       } else if (artFill) {
-        // Resim tüm frame'i kaplar, border-image üstte kenarları keser
         frame.style.background = `url('${STATE.artImageUrl}') center/cover no-repeat`;
         frame.style.backgroundOrigin = "border-box";
       } else {
@@ -2173,7 +2195,7 @@
         frame.style.backgroundOrigin = "";
       }
     } else {
-      frame.style.background = "";  // CSS default (#000000) kullanılsın
+      frame.style.background = "";
       frame.style.backgroundOrigin = "";
     }
 
