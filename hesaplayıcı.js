@@ -87,7 +87,15 @@
     },
     "GB139-1211T": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/d8342518-97a5-4c14-bb26-0d2b09d8b1b9/image_1080.webp",
-      clipRatio: 0.65,
+      clipRatio: 0.73,
+    },
+    "GB139-2967T": {
+      url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/9706aaaa-b5c8-4d6c-ba7a-ecd5d4f357f7/image_1080.webp",
+      clipRatio: 0.73,
+    },
+    "GB139-1775T": {
+      url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/bf99d849-3520-4600-a687-f4aef26c25f2/image_1080.webp",
+      clipRatio: 0.73,
     },
     "GG128-3110-P": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/476aee5a-3b63-4802-8470-3c7bf46d506b/image_1080.webp",
