@@ -72,32 +72,35 @@
   // ========== ÇERÇEVE GÖRSELLERİ (SKU -> URL ve kalınlık) ==========
   // Her çerçeve modeli için:
   // - url: Görsel linki
-  // - slice: Border-image slice değeri (görselin nasıl dilimleneceği)
-  // - borderScale: Ekrandaki çerçeve kalınlık oranı (1.0 = en kalın referans)
-  //   Kalın çerçeveler: 1.0
-  //   Orta kalınlık: 0.6-0.8
-  //   İnce çerçeveler: 0.4-0.55
-  //   Çok ince çerçeveler: 0.25-0.35
+  // - clipRatio: Resim yüklendiğinde çerçeve kenarından ne kadar kesileceği (0-1 arası)
+  //   0.65 = varsayılan (standart çerçeveler)
+  //   Küçük değer (ör. 0.4-0.5) = daha az kesme → ince çerçeveler için
+  //   Büyük değer (ör. 0.7-0.85) = daha fazla kesme → kalın çerçeveler için
   const FRAME_DATA = {
     "GD154-4313-BA": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/e5ef8594-d86b-49b1-898c-d70ffc6ab1cc/image_1080.webp",
+      clipRatio: 0.65,
     },
     "GD154-3427-BA": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/5bc0e7d1-c8c9-451b-98c8-f0412188e500/image_1080.webp",
+      clipRatio: 0.65,
     },
     "GB139-1211T": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/d8342518-97a5-4c14-bb26-0d2b09d8b1b9/image_1080.webp",
+      clipRatio: 0.65,
     },
     "GG128-3110-P": {
       url: "https://cdn.myikas.com/images/04a76b35-2c55-499a-b485-0058f5ce13ce/476aee5a-3b63-4802-8470-3c7bf46d506b/image_1080.webp",
+      clipRatio: 0.65,
     },
-    // Yeni çerçeveler: sadece url ekleyin
-    // "SKU-KODU": { url: "https://cdn.../gorsel.webp" },
+    // Yeni çerçeveler eklerken clipRatio değerini ayarlayın:
+    // "SKU-KODU": { url: "https://cdn.../gorsel.webp", clipRatio: 0.65 },
   };
 
-  // Tüm çerçeveler için sabit değerler
+  // Tüm çerçeveler için varsayılan değerler (model bazlı tanımlanmamışsa bunlar kullanılır)
   const FRAME_SLICE = "21%";
   const FRAME_BORDER_SCALE = 1.3;
+  const DEFAULT_CLIP_RATIO = 0.65;
 
   // Eser alanı arka planı - oluklu mukavva/karton dokusu
   const ART_BG_TEXTURE = `
@@ -2161,8 +2164,10 @@
     const artFill = STATE.artImageUrl && !hasMatEdges && hasRealFrame;
 
     // artFill → border ayarlarını güncelle (kesmeyi azalt)
+    // clipRatio: her çerçeve modeli için ayrı ayarlanabilir (FRAME_DATA içinde)
     if (artFill) {
-      const cssBorder = Math.round(frameBorderPx * 0.65);
+      const clipRatio = (frameData && frameData.clipRatio != null) ? frameData.clipRatio : DEFAULT_CLIP_RATIO;
+      const cssBorder = Math.round(frameBorderPx * clipRatio);
       const outset = frameBorderPx - cssBorder;
       frame.style.borderWidth = cssBorder + "px";
       frame.style.borderImageOutset = outset + "px";
