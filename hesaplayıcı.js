@@ -2010,7 +2010,8 @@
       bevelOuter.style.padding = `${bevelPx}px`;
       if (defaultArtFill) {
         // Kesmeyi azalt: CSS border ince, outset ile görsel kalınlık korunur
-        const cssBorder = Math.round(defaultBorderPx * 0.65);
+        const clipRatio = (frameData && frameData.clipRatio != null) ? frameData.clipRatio : DEFAULT_CLIP_RATIO;
+        const cssBorder = Math.round(defaultBorderPx * clipRatio);
         const outset = defaultBorderPx - cssBorder;
         frame.style.borderWidth = cssBorder + "px";
         frame.style.borderImageOutset = outset + "px";
